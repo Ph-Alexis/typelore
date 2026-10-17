@@ -1,0 +1,35 @@
+.lobby {
+  margin-top: 24px;
+  border-top: 1px solid rgb(148 163 184 / 24%);
+  padding-top: 16px;
+  overflow-wrap: anywhere;
+}
+.stack { display: grid; gap: 12px; }
+.lobby h2, .lobby h3, .lobby p { margin: 0; }
+.lobby > p:not(:empty) { margin-bottom: 12px; }
+.lobby h2 { font-size: 1.3rem; }
+.lobby h3 { font-size: 0.9rem; }
+.lobby small, .slot p { color: #cbd5e1; }
+.lobby button, .lobby input {
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid rgb(148 163 184 / 40%);
+  border-radius: 10px;
+  background: #1e293b;
+  color: #f8fafc;
+}
+.lobby button { cursor: pointer; font-weight: 650; }
+.lobby button:disabled { opacity: 0.55; cursor: not-allowed; }
+.lobby button:focus-visible, .lobby input:focus-visible { outline: 2px solid #7dd3fc; outline-offset: 3px; }
+.lobby .primary { background: #075985; }
+.lobby .ready { background: #065f46; border-color: #34d399; }
+.lobby .error { color: #fda4af; }
+.codeRow { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.code { font-family: "Cascadia Code", Consolas, monospace; font-size: clamp(1.25rem, 5vw, 1.8rem); letter-spacing: 0.12em; user-select: all; }
+.slots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.slot { padding: 16px; border: 1px solid rgb(148 163 184 / 24%); border-radius: 12px; }
+.slot p { margin-top: 8px; }
+.starting { padding: 16px; margin-bottom: 16px; border: 1px solid #34d399; border-radius: 12px; }
+.starting p { margin-top: 8px; }
+@media (max-width: 560px) { .slots { grid-template-columns: 1fr; } }

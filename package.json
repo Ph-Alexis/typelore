@@ -1,0 +1,37 @@
+{
+  "name": "typelore",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "shared",
+    "server",
+    "client"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "dev:services": "concurrently --kill-others-on-fail --names shared,server,client \"npm:dev:shared\" \"npm:dev:server\" \"npm:dev:client\"",
+    "dev:shared": "npm run dev -w @typelore/shared",
+    "dev:server": "npm run dev -w @typelore/server",
+    "dev:client": "npm run dev -w @typelore/client",
+    "build": "npm run build -w @typelore/shared && npm run build -w @typelore/server && npm run build -w @typelore/client",
+    "typecheck": "npm run typecheck -w @typelore/shared && npm run typecheck -w @typelore/server && npm run typecheck -w @typelore/client",
+    "lint": "eslint . --max-warnings=0",
+    "test": "npm run build -w @typelore/shared && npm run test -w @typelore/server",
+    "check": "npm run lint && npm run typecheck && npm run test && npm run build"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^26.6.5",
+    "concurrently": "^10.0.6",
+    "eslint": "^10.13.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.71.2",
+    "vitest": "^5.0.5"
+  }
+}

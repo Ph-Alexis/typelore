@@ -1,0 +1,12 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "noEmit": true,
+    "rootDir": ".",
+    "types": ["node"]
+  },
+  "references": [{ "path": "../shared" }],
+  "include": ["src/**/*.ts", "test/**/*.ts", "vitest.config.ts"]
+}
