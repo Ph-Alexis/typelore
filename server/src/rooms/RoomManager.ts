@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
-import { RoomCodeSchema, type GameStart, type RoomErrorCode, type RoomPlayerJoined,
+import { GameStartSchema, GameStateSyncSchema, RoomCodeSchema, type GameStateSync, type GameStart, type RoomErrorCode, type RoomPlayerJoined,
   type RoomPlayerLeft, type RoomState } from "@typelore/shared";
 import { generateRoomCode } from "./roomCode.js";
+import { GameEngine } from "../game/GameEngine.js";
 
 interface Mutation {
   roomId: string;
@@ -9,10 +10,11 @@ interface Mutation {
   joined?: RoomPlayerJoined;
   left?: RoomPlayerLeft;
   start?: GameStart;
+  sync?: GameStateSync;
   changed: boolean;
 }
 export type RoomResult = { ok: true; data: Mutation } | { ok: false; code: RoomErrorCode };
-interface Options { code?: () => string; uuid?: () => string; now?: () => number }
+interface Options { code?: () => string; uuid?: () => string; now?: () => number; games?: GameEngine }
 
 export class RoomManager {
   private readonly roomsByCode = new Map<string, RoomState>();
@@ -20,11 +22,13 @@ export class RoomManager {
   private readonly code: () => string;
   private readonly uuid: () => string;
   private readonly now: () => number;
+  private readonly games: GameEngine;
 
   constructor(options: Options = {}) {
     this.code = options.code ?? generateRoomCode;
     this.uuid = options.uuid ?? randomUUID;
     this.now = options.now ?? Date.now;
+    this.games = options.games ?? new GameEngine();
   }
 
   get roomCount(): number { return this.roomsByCode.size; }
@@ -33,7 +37,7 @@ export class RoomManager {
     const room = this.roomsByCode.get(code);
     return room && this.snapshot(room);
   }
-  clear(): void { this.roomsByCode.clear(); this.roomByConnection.clear(); }
+  clear(): void { this.games.clear(); this.roomsByCode.clear(); this.roomByConnection.clear(); }
   private snapshot(room: RoomState): RoomState {
     return { ...room, players: room.players.map((player) => ({ ...player })) };
   }
@@ -78,15 +82,22 @@ export class RoomManager {
     if (room.status !== "READY_TO_START") return { ok: false, code: "ROOM_NOT_WAITING" };
     const player = room.players.find((member) => member.connectionId === connectionId)!;
     if (player.ready === ready) return this.success(room, false);
-    player.ready = ready;
-    room.revision += 1;
-    if (room.players.length === 2 && room.players.every((member) => member.ready)) {
-      room.status = "STARTING";
-      const snapshot = this.snapshot(room);
-      return { ok: true, data: { roomId, room: snapshot, changed: true,
-        start: { room: this.snapshot(room), startId: this.uuid(), serverTime: this.now() } } };
+    const candidate = this.snapshot(room);
+    candidate.players.find((member) => member.connectionId === connectionId)!.ready = ready;
+    candidate.revision += 1;
+    if (candidate.players.length === 2 && candidate.players.every((member) => member.ready)) {
+      candidate.status = "STARTING";
+      const start = GameStartSchema.parse({ room: candidate, startId: this.uuid(), serverTime: this.now() });
+      const state = this.games.prepare(start);
+      const finalRoom: RoomState = { ...candidate, status: "IN_GAME", revision: candidate.revision + 1 };
+      const sync = GameStateSyncSchema.parse({ room: finalRoom, state, serverTime: start.serverTime });
+      // Prepare and validate everything before either state owner commits.
+      this.games.commit(state);
+      this.roomsByCode.set(room.code, finalRoom);
+      return { ok: true, data: { roomId, room: this.snapshot(finalRoom), start, sync, changed: true } };
     }
-    return this.success(room);
+    this.roomsByCode.set(room.code, candidate);
+    return this.success(candidate);
   }
 
   leave(connectionId: string, roomId: string): RoomResult {
@@ -104,6 +115,7 @@ export class RoomManager {
     return code ? this.roomsByCode.get(code) : undefined;
   }
   private remove(connectionId: string, room: RoomState, reason: "LEFT" | "DISCONNECTED"): RoomResult {
+    this.games.remove(room.roomId);
     this.roomByConnection.delete(connectionId);
     room.players = room.players.filter((player) => player.connectionId !== connectionId);
     if (room.players.length === 0) {

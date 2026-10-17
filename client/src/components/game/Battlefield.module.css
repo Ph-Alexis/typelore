@@ -1,0 +1,16 @@
+.battlefield { display: grid; gap: 16px; min-width: 0; }
+.battlefield h2, .player h3 { margin: 0; }
+.player { display: grid; gap: 12px; padding: 16px; border: 1px solid; border-radius: 16px; min-width: 0; }
+.self { border-color: #38bdf8; background: rgb(56 189 248 / 6%); }
+.opponent { border-color: #fb7185; background: rgb(251 113 133 / 6%); }
+.grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.cell { display: grid; place-items: center; gap: 4px; min-height: 64px; padding: 8px 4px; border: 1px solid rgb(148 163 184 / 32%); border-radius: 8px; background: #0f172a; }
+.cell strong { font-size: 1.25rem; }
+.cell span { color: #94a3b8; font-size: .75rem; }
+.castle { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 12px; border-radius: 10px; background: #1e293b; }
+.castle progress { width: 100%; grid-column: 1 / -1; accent-color: #34d399; }
+.divider { margin: 0; text-align: center; color: #94a3b8; }
+@media (max-width: 400px) {
+  .player { padding: 10px; }
+  .castle { grid-template-columns: 1fr; }
+}

@@ -75,7 +75,7 @@ export function App() {
   return (
     <main className={styles.page}>
       <section className={styles.panel} aria-labelledby="typelore-title">
-        <p className={styles.eyebrow}>M02 Lobby</p>
+        <p className={styles.eyebrow}>M03 Battlefield</p>
         <h1 id="typelore-title">Typelore</h1>
         <p className={styles.subtitle}>1v1 realtime typing PvP</p>
 

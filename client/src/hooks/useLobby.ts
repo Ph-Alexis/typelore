@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { GameStartSchema, RoomPlayerJoinedSchema, RoomPlayerLeftSchema, RoomStateSchema,
-  type RoomAck, type RoomState, type RoomErrorCode, type ProtocolErrorCode } from "@typelore/shared";
+  type GameState, type RoomAck, type RoomState, type RoomErrorCode, type ProtocolErrorCode } from "@typelore/shared";
 import { socket } from "../socket/client";
+import { acceptGameSync } from "./gameSync";
 
 type Action = "CREATE" | "JOIN" | "READY" | "LEAVE";
 interface LobbyState {
@@ -10,8 +11,9 @@ interface LobbyState {
   error: string;
   notice: string;
   startId: string | null;
+  game: GameState | null;
 }
-const initial: LobbyState = { room: null, pending: null, error: "", notice: "", startId: null };
+const initial: LobbyState = { room: null, pending: null, error: "", notice: "", startId: null, game: null };
 const errors: Record<RoomErrorCode | ProtocolErrorCode, string> = {
   INVALID_PAYLOAD: "Yêu cầu không hợp lệ. Vui lòng thử lại.",
   PROTOCOL_MISMATCH: "Phiên bản không tương thích. Hãy tải lại trang.",
@@ -31,6 +33,8 @@ const errors: Record<RoomErrorCode | ProtocolErrorCode, string> = {
 export function useLobby(online: boolean) {
   const [state, setState] = useState<LobbyState>(initial);
   const room = useRef<RoomState | null>(null);
+  const startId = useRef<string | null>(null);
+  const game = useRef<GameState | null>(null);
   const pending = useRef<Action | null>(null);
   const joinCode = useRef<string | null>(null);
   const generation = useRef(0);
@@ -47,7 +51,11 @@ export function useLobby(online: boolean) {
     } else if (pending.current !== "CREATE" && pending.current !== "JOIN") return;
     if (!previous && pending.current === "JOIN" && next.code !== joinCode.current) return;
     room.current = next;
-    setState((old) => ({ ...old, room: next, startId: next.status === "STARTING" ? old.startId : null }));
+    if (next.status !== "STARTING" && next.status !== "IN_GAME") {
+      startId.current = null;
+      game.current = null;
+    }
+    setState((old) => ({ ...old, room: next, startId: startId.current, game: game.current }));
   }
 
   useEffect(() => {
@@ -58,6 +66,8 @@ export function useLobby(online: boolean) {
       pending.current = null;
       joinCode.current = null;
       room.current = null;
+      startId.current = null;
+      game.current = null;
       setState((old) => ({ ...initial, error: old.error,
         notice: "Kết nối thay đổi. Bạn cần tạo hoặc vào lại phòng." }));
     }
@@ -80,12 +90,21 @@ export function useLobby(online: boolean) {
       if (!parsed.success || parsed.data.room.roomId !== room.current?.roomId ||
         parsed.data.room.revision < room.current.revision) return;
       applyRoom(parsed.data.room);
+      startId.current = parsed.data.startId;
       setState((old) => old.startId === parsed.data.startId ? old : { ...old, startId: parsed.data.startId });
+    }
+    function synced(payload: unknown): void {
+      const next = acceptGameSync(payload, room.current, startId.current, game.current, socket.id);
+      if (!next) return;
+      room.current = next.room;
+      game.current = next.state;
+      setState((old) => ({ ...old, room: next.room, game: next.state, startId: next.state.startId }));
     }
     socket.on("room:updated", update);
     socket.on("room:player-joined", joined);
     socket.on("room:player-left", left);
     socket.on("game:start", started);
+    socket.on("game:state-sync", synced);
     socket.on("connect", reset);
     socket.on("disconnect", reset);
     return () => {
@@ -94,10 +113,13 @@ export function useLobby(online: boolean) {
       clearTimeout(timer.current);
       pending.current = null;
       room.current = null;
+      startId.current = null;
+      game.current = null;
       socket.off("room:updated", update);
       socket.off("room:player-joined", joined);
       socket.off("room:player-left", left);
       socket.off("game:start", started);
+      socket.off("game:state-sync", synced);
       socket.off("connect", reset);
       socket.off("disconnect", reset);
     };
@@ -127,6 +149,8 @@ export function useLobby(online: boolean) {
       } else if (action === "LEAVE") {
         if (room.current?.roomId === currentRoom?.roomId) {
           room.current = null;
+          startId.current = null;
+          game.current = null;
           setState({ ...initial, notice: "Bạn đã rời phòng." });
         }
       } else if ("room" in response.data) {

@@ -11,12 +11,16 @@ type RoomServer = Server<ClientToServerEvents, ServerToClientEvents, Record<stri
 export function registerRoomHandlers(io: RoomServer, socket: RoomSocket, rooms: RoomManager): void {
   function publish(result: RoomResult): void {
     if (!result.ok || !result.data.changed || !result.data.room) return;
-    const { room, joined, left, start } = result.data;
+    const { room, joined, left, start, sync } = result.data;
     const audience = io.to(room.players.map((player) => player.connectionId));
+    if (start) {
+      audience.emit("room:updated", start.room);
+      audience.emit("game:start", start);
+    }
     audience.emit("room:updated", room);
     if (joined) audience.emit("room:player-joined", joined);
     if (left) audience.emit("room:player-left", left);
-    if (start) audience.emit("game:start", start);
+    if (sync) audience.emit("game:state-sync", sync);
   }
   function action<T>(schema: z.ZodType<T>, payload: unknown, acknowledge: unknown,
     mutate: (value: T) => RoomResult, leave = false, join = false): void {

@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { PROTOCOL_VERSION, type ClientToServerEvents, type ServerToClientEvents,
+import { GameStateSyncSchema, PROTOCOL_VERSION, type GameStateSync, type ClientToServerEvents, type ServerToClientEvents,
   type RoomAck, type RoomState, type GameStart, type RoomPlayerLeft } from "@typelore/shared";
 import { io, type Socket } from "socket.io-client";
 import { afterEach, describe, expect, it } from "vitest";
@@ -55,6 +55,68 @@ afterEach(async () => {
 });
 
 describe("room socket lifecycle", () => {
+  it("M03 publishes ordered identical private snapshots once and final ready ack is IN_GAME", async () => {
+    const { url } = await start();
+    const [host, guest, outsider] = await Promise.all([connect(url), connect(url), connect(url)]);
+    const room = await create(host);
+    await request(guest, "room:join", { code: room.code });
+    await request(host, "room:ready", { roomId: room.roomId, ready: true });
+    success(await request(guest, "connection:ping", { nonce: "ready-delivered", clientTime: 0 }));
+    const orders: string[][] = [[], []];
+    const snapshots: GameStateSync[][] = [[], []];
+    const starts: GameStart[][] = [[], []];
+    for (const [index, client] of [host, guest].entries()) {
+      client.on("room:updated", (value) => { orders[index]!.push(value.status); });
+      client.on("game:start", (value) => { orders[index]!.push("start"); starts[index]!.push(value); });
+      client.on("game:state-sync", (value) => { orders[index]!.push("sync"); snapshots[index]!.push(value); });
+    }
+    let leaked = 0;
+    outsider.on("game:state-sync", () => { leaked += 1; });
+    outsider.on("game:start", () => { leaked += 1; });
+    const synced = event<GameStateSync>(guest, "game:state-sync");
+    const response = success(await request<{ room: RoomState }>(guest, "room:ready", { roomId: room.roomId, ready: true }));
+    const snapshot = await synced;
+    success(await request(host, "connection:ping", { nonce: "barrier", clientTime: 0 }));
+    expect(response.room.status).toBe("IN_GAME");
+    expect(GameStateSyncSchema.safeParse(snapshot).success).toBe(true);
+    expect(snapshot.room).toEqual(response.room);
+    for (const index of [0, 1]) {
+      expect(orders[index]).toEqual(["STARTING", "start", "IN_GAME", "sync"]);
+      expect(snapshots[index]).toEqual([snapshot]);
+      expect(starts[index]?.[0]?.startId).toBe(snapshot.state.startId);
+    }
+    for (const player of snapshot.state.players) {
+      expect(player.castle).toEqual({ hp: 200, maxHp: 200 });
+      expect(player.grid).toHaveLength(9);
+      expect(player.grid.every((cell, index) => cell.id === index + 1 && cell.object === null)).toBe(true);
+    }
+    await request(guest, "room:ready", { roomId: room.roomId, ready: true });
+    success(await request(outsider, "connection:ping", { nonce: "private", clientTime: 0 }));
+    expect(leaked).toBe(0); expect(snapshots[0]).toHaveLength(1); expect(snapshots[1]).toHaveLength(1);
+    const waiting = event<RoomState>(host, "room:updated");
+    success(await request(guest, "room:leave", { roomId: room.roomId }));
+    expect((await waiting).status).toBe("WAITING_FOR_PLAYERS");
+    await request(outsider, "room:join", { code: room.code });
+    await request(host, "room:ready", { roomId: room.roomId, ready: true });
+    const fresh = event<GameStateSync>(host, "game:state-sync");
+    await request(outsider, "room:ready", { roomId: room.roomId, ready: true });
+    expect((await fresh).state.startId).not.toBe(snapshot.state.startId);
+    expect(snapshots[1]).toHaveLength(1); // Departed client receives no replacement state.
+  });
+
+  it("M03 handles concurrent ready requests with one initialization", async () => {
+    const { url } = await start();
+    const [host, guest] = await Promise.all([connect(url), connect(url)]);
+    const room = await create(host); await request(guest, "room:join", { code: room.code });
+    let count = 0; host.on("game:state-sync", () => { count += 1; });
+    const synced = event<GameStateSync>(host, "game:state-sync");
+    const replies = await Promise.all([request(host, "room:ready", { roomId: room.roomId, ready: true }),
+      request(guest, "room:ready", { roomId: room.roomId, ready: true })]);
+    expect(replies.every((reply) => reply.ok)).toBe(true);
+    expect((await synced).state.revision).toBe(1);
+    success(await request(host, "connection:ping", { nonce: "concurrent", clientTime: 0 }));
+    expect(count).toBe(1);
+  });
   it("T03/T04/T05/T06 creates, joins, broadcasts privately and reports capacity/errors", async () => {
     const { url } = await start();
     const [host, guest, outsider] = await Promise.all([connect(url), connect(url), connect(url)]);

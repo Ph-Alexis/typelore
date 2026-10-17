@@ -4,6 +4,7 @@ import type {
   ProtocolHello,
   ProtocolWelcome,
 } from "./protocol.js";
+import type { GameStateSync } from "./game.js";
 import type {
   GameStart, RoomCreate, RoomJoin, RoomReady, RoomLeave, RoomState,
   RoomPlayerJoined, RoomPlayerLeft, RoomErrorCode,
@@ -27,6 +28,7 @@ export type RoomAck<T> = Ack<T, ProtocolErrorCode | RoomErrorCode>;
 export interface SocketData { protocolReady: boolean }
 
 export interface ServerToClientEvents {
+  "game:state-sync": (payload: GameStateSync) => void;
   "room:updated": (payload: RoomState) => void;
   "room:player-joined": (payload: RoomPlayerJoined) => void;
   "room:player-left": (payload: RoomPlayerLeft) => void;

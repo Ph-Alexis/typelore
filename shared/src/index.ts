@@ -19,3 +19,4 @@ export type {
   SocketData,
 } from "./socket-contracts.js";
 export * from "./room.js";
+export * from "./game.js";
