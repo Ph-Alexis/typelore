@@ -86,4 +86,38 @@ describe("room schemas and manager", () => {
     expect(manager.roomCount).toBe(0);
     expect(manager.memberCount).toBe(0);
   });
+
+  it("T17 supports rematch when game is in GAME_OVER status", () => {
+    const manager = new RoomManager();
+    const hostRoom = roomOf(manager.create("host"));
+    manager.join("guest", hostRoom.code);
+    manager.setReady("host", hostRoom.roomId, true);
+    const startRes = manager.setReady("guest", hostRoom.roomId, true);
+    if (!startRes.ok) throw new Error("Expected start");
+
+    // Before GAME_OVER, rematch is rejected
+    expect(manager.rematch("host", hostRoom.roomId)).toEqual({ ok: false, code: "ROOM_NOT_OVER" });
+
+    // Simulate game over
+    const activeRoom = manager.getRoom(hostRoom.code)!;
+    activeRoom.status = "GAME_OVER";
+    // @ts-expect-error accessing private roomsByCode map for test
+    manager.roomsByCode.set(hostRoom.code, activeRoom);
+
+    // Host votes for rematch
+    const vote1 = manager.rematch("host", hostRoom.roomId);
+    expect(vote1.ok).toBe(true);
+    if (vote1.ok) {
+      expect(vote1.data.start).toBeUndefined();
+    }
+
+    // Guest votes for rematch -> game starts!
+    const vote2 = manager.rematch("guest", hostRoom.roomId);
+    expect(vote2.ok).toBe(true);
+    if (vote2.ok) {
+      expect(vote2.data.start).toBeDefined();
+      expect(vote2.data.start?.startId).not.toBe(startRes.data.start?.startId);
+      expect(vote2.data.room?.status).toBe("IN_GAME");
+    }
+  });
 });

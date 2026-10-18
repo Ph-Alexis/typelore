@@ -366,14 +366,14 @@ describe("Milestone M10: Polish & Playtest Metrics Test Suite", () => {
       roomId,
       startId,
       command: "pistol",
-      target: 1,
+      target: 7,
     });
     engine.executeCommand(roomId, p1, {
       requestId: randomUUID(),
       roomId,
       startId,
       command: "load ammo",
-      target: 1,
+      target: 7,
     });
 
     // P2 places protector at cell 9 (opponent lane 1 front cell)

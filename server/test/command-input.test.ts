@@ -1,12 +1,20 @@
 import { randomUUID } from "node:crypto";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { CommandIntent } from "@typelore/shared";
-import { confirmTyping, editDraft, initialTypingState } from "../../client/src/input/typingMachine.js";
+import { confirmTyping, editDraft, initialTypingState, matchGroundCommand } from "../../client/src/input/typingMachine.js";
 import { beforeInputAction, blockedShortcut, inputKeyAction, shouldRestoreTyping } from "../../client/src/input/keyboardPolicy.js";
 import { CommandRequest } from "../../client/src/input/commandRequest.js";
 
 afterEach(() => vi.useRealTimers());
 describe("typing transitions and edit policy", () => {
+  it("auto-submits ground commands upon exact match and rejects arrow from ground auto-submit", () => {
+    expect(matchGroundCommand("boost")).toEqual({ command: "boost" });
+    expect(matchGroundCommand("use brick")).toEqual({ command: "use brick" });
+    expect(matchGroundCommand("pistol 1")).toEqual({ command: "pistol", target: 1 });
+    expect(matchGroundCommand("bazooka a")).toEqual({ command: "bazooka", target: "A" });
+    expect(matchGroundCommand("arrow")).toBeNull();
+  });
+
   it("requires separate Enter for command and target, keeps invalid steps and blocks pending submit", () => {
     const command = confirmTyping({ ...initialTypingState, draft: "PISTOL" });
     expect(command.state.phase).toBe("TARGET"); expect(command.intent).toBeUndefined();

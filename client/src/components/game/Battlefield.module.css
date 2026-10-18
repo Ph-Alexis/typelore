@@ -616,6 +616,7 @@
   min-height: 0;
   width: 100%;
   box-sizing: border-box;
+  position: relative;
 }
 .cell {
   display: flex;
@@ -719,8 +720,57 @@
   font-size: 0.95rem;
   color: #cbd5e1;
 }
-.gameOverLeaveBtn {
+.areaIntersectionBadge {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #facc15;
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(250, 204, 21, 0.5);
+  box-shadow: 0 0 8px rgba(250, 204, 21, 0.25);
+  z-index: 10;
+  pointer-events: none;
+  user-select: none;
+}
+
+.gameOverActions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
   margin-top: 8px;
+}
+.rematchBtn {
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  transition: all 0.2s;
+  font-family: "Cascadia Code", Consolas, monospace;
+}
+.rematchBtn:hover:not(:disabled) {
+  background: rgba(56, 189, 248, 0.28);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+  transform: translateY(-1px);
+}
+.rematchBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.gameOverLeaveBtn {
   padding: 10px 20px;
   font-size: 0.95rem;
   font-weight: 700;

@@ -236,7 +236,7 @@ describe("M06 Crafting & Healing Engine", () => {
       requestId: randomUUID(),
       roomId,
       startId,
-      command: "add brick",
+      command: "use brick",
     });
     expect(res.ok).toBe(false);
     if (!res.ok) {
@@ -275,7 +275,7 @@ describe("M06 Crafting & Healing Engine", () => {
       requestId: randomUUID(),
       roomId,
       startId,
-      command: "add brick",
+      command: "use brick",
     });
     expect(res.ok).toBe(true);
     if (!res.ok) return;
@@ -301,7 +301,7 @@ describe("M06 Crafting & Healing Engine", () => {
       requestId: randomUUID(),
       roomId,
       startId,
-      command: "add brick",
+      command: "use brick",
     });
     expect(res.ok).toBe(true);
     if (!res.ok) return;
@@ -330,7 +330,7 @@ describe("M06 Crafting & Healing Engine", () => {
       requestId: randomUUID(),
       roomId,
       startId,
-      command: "add brick",
+      command: "use brick",
     });
     expect(res.ok).toBe(true);
     if (!res.ok) return;
@@ -347,7 +347,7 @@ describe("M06 Crafting & Healing Engine", () => {
       requestId: randomUUID(),
       roomId,
       startId,
-      command: "add brick",
+      command: "use brick",
     });
     expect(fullRes.ok).toBe(true);
     if (!fullRes.ok) return;

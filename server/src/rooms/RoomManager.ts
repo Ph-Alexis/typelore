@@ -42,6 +42,7 @@ export class RoomManager {
   private readonly roomsByCode = new Map<string, RoomState>();
   private readonly roomByConnection = new Map<string, string>();
   private readonly combatTimers = new Map<string, NodeJS.Timeout>();
+  private readonly rematchVotes = new Map<string, Set<string>>();
   private readonly code: () => string;
   private readonly uuid: () => string;
   private readonly now: () => number;
@@ -150,6 +151,7 @@ export class RoomManager {
       clearInterval(timer);
     }
     this.combatTimers.clear();
+    this.rematchVotes.clear();
     this.games.clear();
     this.roomsByCode.clear();
     this.roomByConnection.clear();
@@ -218,6 +220,45 @@ export class RoomManager {
     return this.success(candidate);
   }
 
+  rematch(connectionId: string, roomId: string): RoomResult {
+    const room = this.memberRoom(connectionId);
+    if (!room) return { ok: false, code: "NOT_IN_ROOM" };
+    if (room.roomId !== roomId) return { ok: false, code: "ROOM_MISMATCH" };
+    if (room.status !== "GAME_OVER") return { ok: false, code: "ROOM_NOT_OVER" };
+    if (room.players.length !== 2) return { ok: false, code: "ROOM_NOT_WAITING" };
+
+    let votes = this.rematchVotes.get(room.code);
+    if (!votes) {
+      votes = new Set<string>();
+      this.rematchVotes.set(room.code, votes);
+    }
+    votes.add(connectionId);
+
+    if (votes.size === 2) {
+      this.rematchVotes.delete(room.code);
+      this.stopCombatTimer(room.code);
+      this.games.remove(room.roomId);
+
+      const candidate = this.snapshot(room);
+      candidate.players.forEach((p) => { p.ready = true; });
+      candidate.status = "STARTING";
+      candidate.revision += 1;
+      const start = GameStartSchema.parse({ room: candidate, startId: this.uuid(), serverTime: this.now() });
+      const state = this.games.prepare(start);
+      const finalRoom: RoomState = { ...candidate, status: "IN_GAME", revision: candidate.revision + 1 };
+      const sync = GameStateSyncSchema.parse({ room: finalRoom, state, serverTime: start.serverTime });
+      this.games.commit(state);
+      this.roomsByCode.set(room.code, finalRoom);
+      this.startCombatTimer(finalRoom.code, finalRoom.roomId);
+      return { ok: true, data: { roomId, room: this.snapshot(finalRoom), start, sync, changed: true } };
+    }
+
+    const candidate = this.snapshot(room);
+    candidate.revision += 1;
+    this.roomsByCode.set(room.code, candidate);
+    return this.success(candidate);
+  }
+
   leave(connectionId: string, roomId: string): RoomResult {
     const room = this.memberRoom(connectionId);
     if (!room) return { ok: false, code: "NOT_IN_ROOM" };
@@ -233,6 +274,7 @@ export class RoomManager {
     return code ? this.roomsByCode.get(code) : undefined;
   }
   private remove(connectionId: string, room: RoomState, reason: "LEFT" | "DISCONNECTED"): RoomResult {
+    this.rematchVotes.delete(room.code);
     this.stopCombatTimer(room.code);
     this.games.remove(room.roomId);
     this.roomByConnection.delete(connectionId);

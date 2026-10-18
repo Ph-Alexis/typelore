@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { BirdState } from "@typelore/shared";
+import { useLanguage } from "../../i18n/LanguageContext";
 import styles from "./Battlefield.module.css";
 
 export function AirStatus({
@@ -13,6 +14,7 @@ export function AirStatus({
   label: string;
   opponent: boolean;
 }) {
+  const { t } = useLanguage();
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
@@ -25,18 +27,18 @@ export function AirStatus({
   const remainingSec = Math.max(0, Math.ceil((cooldownUntil - now) / 1000));
 
   return (
-    <div className={styles.airStatus} aria-label={`Không chiến ${label}`}>
+    <div className={styles.airStatus} aria-label={`${t("groupAir")} ${label}`}>
       <div className={styles.airHeader}>
-        <span className={styles.airTitle}>Không chiến {label}</span>
+        <span className={styles.airTitle}>{t("groupAir")} {label}</span>
         {!opponent && (
           <span className={isCooldownReady ? styles.airReadyBadge : styles.airCooldownBadge}>
-            {isCooldownReady ? "BIRD: SẴN SÀNG" : `BIRD: HỒI CHIÊU (${remainingSec}s)`}
+            {isCooldownReady ? "BIRD: READY" : `BIRD: COOLDOWN (${remainingSec}s)`}
           </span>
         )}
       </div>
 
       {birds.length > 0 ? (
-        <div className={styles.birdsList} aria-label={`Danh sách Bird ${label}`}>
+        <div className={styles.birdsList} aria-label={`Birds ${label}`}>
           {birds.map((bird) => (
             <div
               key={bird.id}
@@ -45,7 +47,7 @@ export function AirStatus({
               <div className={styles.birdInfo}>
                 <span className={styles.birdIcon}>🦅</span>
                 <span className={styles.birdTarget}>
-                  {opponent ? "Tấn công Castle bạn!" : "Bay sang Castle đối thủ"}
+                  {opponent ? t("birdAttackingYou") : t("birdFlyingToOpp")}
                 </span>
                 <span className={styles.birdTimer}>{bird.ticksRemaining}s</span>
               </div>
@@ -54,7 +56,7 @@ export function AirStatus({
                   HP: {bird.hp}/{bird.maxHp}
                 </span>
                 <progress
-                  aria-label={`Máu Bird ${bird.hp}/${bird.maxHp}`}
+                  aria-label={`Bird HP ${bird.hp}/${bird.maxHp}`}
                   value={bird.hp}
                   max={bird.maxHp}
                 />
@@ -63,7 +65,7 @@ export function AirStatus({
           ))}
         </div>
       ) : (
-        <div className={styles.noBirds}>Bầu trời yên tĩnh</div>
+        <div className={styles.noBirds}>{t("quietSky")}</div>
       )}
     </div>
   );

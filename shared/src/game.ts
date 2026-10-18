@@ -26,13 +26,43 @@ export const BRICK_HP = 15;
 export const BRICK_HEAL = 15;
 export const BAZOOKA_REQUIRED_BOOST = 10;
 export const BAZOOKA_DAMAGE = 10;
+
+export const COMBAT_ROWS = {
+  1: [7, 8, 9], // Row 1 (Top)
+  2: [4, 5, 6], // Row 2 (Middle)
+  3: [1, 2, 3], // Row 3 (Bottom)
+} as const;
+export type CombatRow = 1 | 2 | 3;
+
+export function getCellRow(cellId: number): CombatRow {
+  if (cellId === 7 || cellId === 8 || cellId === 9) return 1;
+  if (cellId === 4 || cellId === 5 || cellId === 6) return 2;
+  return 3;
+}
+
+export function getTargetRowCells(
+  shooterSlot: "PLAYER_1" | "PLAYER_2",
+  row: CombatRow,
+): readonly [number, number, number] {
+  if (shooterSlot === "PLAYER_1") {
+    if (row === 1) return [9, 8, 7] as const;
+    if (row === 2) return [6, 5, 4] as const;
+    return [3, 2, 1] as const;
+  }
+  return COMBAT_ROWS[row];
+}
+
 export const BAZOOKA_AREAS = {
+  A: [7, 8, 4, 5],
+  B: [8, 9, 5, 6],
+  C: [4, 5, 1, 2],
+  D: [5, 6, 2, 3],
   1: [7, 8, 4, 5],
   2: [8, 9, 5, 6],
   3: [4, 5, 1, 2],
   4: [5, 6, 2, 3],
 } as const;
-export type BazookaAreaId = keyof typeof BAZOOKA_AREAS;
+export type BazookaAreaId = "A" | "B" | "C" | "D" | 1 | 2 | 3 | 4;
 export const BIRD_HP = 15;
 export const BIRD_DAMAGE = 20;
 export const BIRD_FLIGHT_TIME_MS = 10000;
@@ -47,6 +77,7 @@ export const BirdStateSchema = z.object({
   createdAt: z.number().finite().nonnegative(),
   flightDurationMs: z.literal(BIRD_FLIGHT_TIME_MS),
   ticksRemaining: z.number().int().min(0).max(BIRD_FLIGHT_TICKS),
+  word: z.string().regex(/^[a-z]{15}$/, "Bird challenge word must be exactly 15 lowercase ASCII letters").default("typelorecombats"),
 }).strict();
 
 export const PistolObjectSchema = z.object({

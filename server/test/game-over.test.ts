@@ -89,6 +89,7 @@ describe("Milestone M09: Game Over & Reliability Test Suite", () => {
         createdAt: 1000,
         flightDurationMs: BIRD_FLIGHT_TIME_MS,
         ticksRemaining: 1,
+        word: "abcdefghijklmno",
       });
     });
 
@@ -115,7 +116,7 @@ describe("Milestone M09: Game Over & Reliability Test Suite", () => {
       game.players[1].castle.hp = 5;
       const p1Cell = game.players[0].grid.find((c) => c.id === 1)!;
       p1Cell.object = { type: "PISTOL", hp: 15, maxHp: 15, ammo: 1, maxAmmo: 10 };
-      const p2Cell = game.players[1].grid.find((c) => c.id === 1)!;
+      const p2Cell = game.players[1].grid.find((c) => c.id === 7)!;
       p2Cell.object = { type: "PISTOL", hp: 15, maxHp: 15, ammo: 1, maxAmmo: 10 };
     });
 

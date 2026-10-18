@@ -1,4 +1,5 @@
 import type { BirdState, GridCellState } from "@typelore/shared";
+import { useLanguage } from "../../i18n/LanguageContext";
 import styles from "./Battlefield.module.css";
 
 export function CombatCorridor({
@@ -12,6 +13,7 @@ export function CombatCorridor({
   selfGrid: GridCellState[];
   opponentGrid: GridCellState[];
 }) {
+  const { t } = useLanguage();
   const hasSelfPistolArmed = selfGrid.some((c) => c.object?.type === "PISTOL" && c.object.ammo > 0);
   const hasOppPistolArmed = opponentGrid.some((c) => c.object?.type === "PISTOL" && c.object.ammo > 0);
   const allBirds = [
@@ -20,7 +22,7 @@ export function CombatCorridor({
   ];
 
   return (
-    <div className={styles.combatCorridor} aria-label="Không phận và đạn đạo giữa 2 sân">
+    <div className={styles.combatCorridor} aria-label={t("corridorAria")}>
       <div className={styles.corridorSky}>
         {allBirds.length > 0 ? (
           allBirds.map((bird) => {
@@ -29,7 +31,7 @@ export function CombatCorridor({
               <div
                 key={bird.id}
                 className={`${styles.corridorBird} ${isToOpponent ? styles.birdToOpponent : styles.birdToSelf}`}
-                title={`Bird ${bird.hp}/${bird.maxHp} HP, còn ${bird.ticksRemaining}s`}
+                title={t("birdTitle", { hp: bird.hp, maxHp: bird.maxHp, ticks: bird.ticksRemaining })}
               >
                 <div className={styles.birdFlightGraphic}>
                   {isToOpponent ? "🐦💣 →" : "← 🐦💣"}
@@ -40,7 +42,7 @@ export function CombatCorridor({
                     className={styles.birdMiniProgress}
                     value={bird.hp}
                     max={bird.maxHp}
-                    aria-label={`Bird HP ${bird.hp}/${bird.maxHp}`}
+                    aria-label={t("birdHpAria", { hp: bird.hp, maxHp: bird.maxHp })}
                   />
                 </div>
               </div>
@@ -61,4 +63,3 @@ export function CombatCorridor({
     </div>
   );
 }
-

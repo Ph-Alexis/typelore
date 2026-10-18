@@ -46,7 +46,7 @@ export function CommandHud() {
         { syntax: "protector <1–9>", desc: t("cmdProtectorDesc") },
         { syntax: "add water <1–9>", desc: t("cmdWaterDesc") },
         { syntax: "add clay <1–9>", desc: t("cmdClayDesc") },
-        { syntax: "add brick", desc: t("cmdBrickDesc") },
+        { syntax: "use brick", desc: t("cmdBrickDesc") },
       ],
     },
     {
@@ -55,7 +55,7 @@ export function CommandHud() {
       colorClass: styles.groupHeavy ?? "",
       commands: [
         { syntax: "boost", desc: t("cmdBoostDesc") },
-        { syntax: "bazooka <1–4>", desc: t("cmdBazookaDesc") },
+        { syntax: "bazooka <A–D>", desc: t("cmdBazookaDesc") },
       ],
     },
     {
@@ -64,7 +64,7 @@ export function CommandHud() {
       colorClass: styles.groupAir ?? "",
       commands: [
         { syntax: "bird and bomb", desc: t("cmdBirdDesc") },
-        { syntax: "arrow", desc: t("cmdArrowDesc") },
+        { syntax: "type letters", desc: t("cmdArrowDesc") },
       ],
     },
   ];

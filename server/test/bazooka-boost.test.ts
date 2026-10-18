@@ -314,5 +314,33 @@ describe("M07 Bazooka & Boost Engine", () => {
     const nextBoost = engine.executeCommand(roomId, p1, { requestId: randomUUID(), roomId, startId, command: "boost" });
     expect(nextBoost.ok && nextBoost.state.players[0].bazookaBoost).toBe(1);
   });
+
+  it("fires Bazooka using Area letters A, B, C, D (case-insensitive)", () => {
+    const engine = new GameEngine();
+    const { roomId, startId, p1, p2 } = setupGame(engine);
+
+    // Charge boost to 10
+    for (let i = 1; i <= 10; i++) {
+      engine.executeCommand(roomId, p1, { requestId: randomUUID(), roomId, startId, command: "boost" });
+    }
+
+    // Set up protector at cell 7 (in Area A: [7, 8, 4, 5])
+    engine.executeCommand(roomId, p2, { requestId: randomUUID(), roomId, startId, command: "protector", target: 7 });
+
+    // Fire Bazooka at Area "a" (lowercase)
+    const res = engine.executeCommand(roomId, p1, {
+      requestId: randomUUID(),
+      roomId,
+      startId,
+      command: "bazooka",
+      // @ts-expect-error testing string area target
+      target: "a",
+    });
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+
+    const cell7 = res.state.players[1].grid.find((c) => c.id === 7);
+    expect(cell7?.object?.hp).toBe(PROTECTOR_HP - 10);
+  });
 });
 

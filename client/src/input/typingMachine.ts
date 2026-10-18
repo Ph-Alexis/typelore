@@ -10,7 +10,35 @@ export interface TypingState {
 export const initialTypingState: TypingState = {
   phase: "COMMAND", draft: "", command: null, feedback: "", error: false,
 };
-export type ParsedCommand = { command: GameCommand; target?: number };
+export type ParsedCommand = { command: GameCommand; target?: number | string };
+
+export function matchGroundCommand(raw: string): ParsedCommand | null {
+  const text = raw.toLowerCase();
+  if (!text) return null;
+
+  // 1. Zero-target commands (must be exact match without trailing spaces)
+  const zeroTargetCommands = ["boost", "bird and bomb", "use brick"] as const;
+  for (const cmd of zeroTargetCommands) {
+    if (text === cmd) {
+      return { command: cmd };
+    }
+  }
+
+  // 2. Commands with target
+  const targetCommands = ["load ammo", "add water", "add clay", "pistol", "protector", "bazooka"] as const;
+  for (const cmd of targetCommands) {
+    if (text.startsWith(cmd + " ")) {
+      const remainder = text.slice(cmd.length + 1);
+      const target = parseCommandTarget(cmd, remainder);
+      if (target !== null) {
+        return { command: cmd, target };
+      }
+    }
+  }
+
+  return null;
+}
+
 export function editDraft(draft: string, start: number, end: number,
   operation: string, limit: number): { draft: string; caret: number } {
   if (operation === "Delete") return { draft: "", caret: 0 };
@@ -25,6 +53,13 @@ export function editDraft(draft: string, start: number, end: number,
 export function confirmTyping(state: TypingState): { state: TypingState; intent?: ParsedCommand } {
   if (state.phase === "SUBMIT") return { state };
   if (state.phase === "COMMAND") {
+    const directMatch = matchGroundCommand(state.draft);
+    if (directMatch) {
+      return {
+        state: { ...state, phase: "SUBMIT", command: directMatch.command, feedback: "Đang xác thực lệnh…", error: false },
+        intent: directMatch,
+      };
+    }
     const parsed = parseGameCommand(state.draft);
     if (!parsed.success) return { state: { ...state, error: true, feedback: "Lệnh không hợp lệ. Kiểm tra tên và khoảng trắng." } };
     const command = parsed.data;
@@ -38,3 +73,4 @@ export function confirmTyping(state: TypingState): { state: TypingState; intent?
   return { state: { ...state, phase: "SUBMIT", feedback: "Đang xác thực lệnh…", error: false },
     intent: { command: state.command, target } };
 }
+

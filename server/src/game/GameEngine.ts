@@ -22,6 +22,7 @@ import {
   BIRD_COOLDOWN_MS,
   ARROW_DAMAGE,
   BIRD_FLIGHT_TICKS,
+  getTargetRowCells,
   type BazookaAreaId,
   type BirdState,
   type CommandIntent,
@@ -57,16 +58,28 @@ export function createInitialPlayerMetrics(): PlayerMetrics {
   };
 }
 
-export const OPPONENT_LANE_CELLS = {
-  1: [9, 6, 3], // Front -> Middle -> Back
-  2: [8, 5, 2],
-  3: [7, 4, 1],
+export const COMBAT_ROWS = {
+  1: [7, 8, 9], // Row 1 (Top)
+  2: [4, 5, 6], // Row 2 (Middle)
+  3: [1, 2, 3], // Row 3 (Bottom)
 } as const;
 
-export function getCellLane(cellId: number): 1 | 2 | 3 {
-  if (cellId === 1 || cellId === 4 || cellId === 7) return 1;
-  if (cellId === 2 || cellId === 5 || cellId === 8) return 2;
+export function getCellRow(cellId: number): 1 | 2 | 3 {
+  if (cellId === 7 || cellId === 8 || cellId === 9) return 1;
+  if (cellId === 4 || cellId === 5 || cellId === 6) return 2;
   return 3;
+}
+
+export const getCellLane = getCellRow;
+export const OPPONENT_LANE_CELLS = COMBAT_ROWS;
+
+export function generateBirdChallengeWord(len = 15): string {
+  const chars = "abcdefghijklmnopqrstuvwxyz";
+  let word = "";
+  for (let i = 0; i < len; i++) {
+    word += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return word;
 }
 
 export function createInitialGameState(start: GameStart): GameState {
@@ -259,7 +272,7 @@ export class GameEngine {
       return fail("CELL_OCCUPIED");
     }
 
-    if (intent.command === "add brick") {
+    if (intent.command === "use brick") {
       const cell = player.grid.find((c) => c.object?.type === "BRICK");
       if (!cell) return fail("NO_BRICK_AVAILABLE");
       cell.object = null;
@@ -285,7 +298,8 @@ export class GameEngine {
     }
 
     if (intent.command === "bazooka") {
-      if (typeof intent.target !== "number" || !(intent.target in BAZOOKA_AREAS)) {
+      const areaKey = (typeof intent.target === "string" ? intent.target.toUpperCase() : intent.target) as BazookaAreaId;
+      if (!intent.target || !(areaKey in BAZOOKA_AREAS)) {
         return fail("INVALID_TARGET");
       }
       if (player.bazookaBoost < BAZOOKA_REQUIRED_BOOST) {
@@ -294,7 +308,7 @@ export class GameEngine {
       const opponent = state.players.find((p) => p.connectionId !== connectionId);
       if (!opponent) return { ok: false, code: "NOT_IN_ROOM" };
 
-      const targetCells = BAZOOKA_AREAS[intent.target as BazookaAreaId];
+      const targetCells = BAZOOKA_AREAS[areaKey];
       let totalBazookaDamage = 0;
       for (const cellId of targetCells) {
         const cell = opponent.grid.find((c) => c.id === cellId);
@@ -334,6 +348,7 @@ export class GameEngine {
         createdAt: now,
         flightDurationMs: BIRD_FLIGHT_TIME_MS,
         ticksRemaining: BIRD_FLIGHT_TICKS,
+        word: generateBirdChallengeWord(15),
       };
       player.birds.push(newBird);
       player.birdCooldownUntil = now + BIRD_COOLDOWN_MS;
@@ -491,7 +506,7 @@ export class GameEngine {
     lane: 1 | 2 | 3,
     matchMetrics?: MatchMetrics,
   ): void {
-    const targetCells = OPPONENT_LANE_CELLS[lane];
+    const targetCells = getTargetRowCells(shooter.slot, lane);
     if (!targetCells) return;
     for (const cellId of targetCells) {
       const cell = targetPlayer.grid.find((c) => c.id === cellId);

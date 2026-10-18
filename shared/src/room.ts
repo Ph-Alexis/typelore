@@ -37,6 +37,7 @@ export const RoomCreateSchema = z.object({}).strict();
 export const RoomJoinSchema = z.object({ code: RoomCodeInputSchema }).strict();
 export const RoomReadySchema = z.object({ roomId: z.uuid(), ready: z.boolean() }).strict();
 export const RoomLeaveSchema = z.object({ roomId: z.uuid() }).strict();
+export const RoomRematchSchema = z.object({ roomId: z.uuid() }).strict();
 export const RoomPlayerJoinedSchema = z.object({
   roomId: z.uuid(), revision: z.number().int().positive(), player: RoomPlayerSchema,
 }).strict();
@@ -54,10 +55,11 @@ export type RoomCreate = z.infer<typeof RoomCreateSchema>;
 export type RoomJoin = z.infer<typeof RoomJoinSchema>;
 export type RoomReady = z.infer<typeof RoomReadySchema>;
 export type RoomLeave = z.infer<typeof RoomLeaveSchema>;
+export type RoomRematch = z.infer<typeof RoomRematchSchema>;
 export type RoomPlayerJoined = z.infer<typeof RoomPlayerJoinedSchema>;
 export type RoomPlayerLeft = z.infer<typeof RoomPlayerLeftSchema>;
 export type GameStart = z.infer<typeof GameStartSchema>;
 export type RoomErrorCode =
   | "INVALID_ROOM_CODE" | "PROTOCOL_NOT_READY" | "ALREADY_IN_ROOM"
   | "ROOM_NOT_FOUND" | "ROOM_FULL" | "ROOM_NOT_JOINABLE" | "NOT_IN_ROOM"
-  | "ROOM_MISMATCH" | "ROOM_NOT_WAITING" | "ROOM_CODE_EXHAUSTED";
+  | "ROOM_MISMATCH" | "ROOM_NOT_WAITING" | "ROOM_CODE_EXHAUSTED" | "ROOM_NOT_OVER";

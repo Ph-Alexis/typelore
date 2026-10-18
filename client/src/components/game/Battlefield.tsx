@@ -1,4 +1,4 @@
-import type { GameState } from "@typelore/shared";
+import { getCellRow, getTargetRowCells, type GameState } from "@typelore/shared";
 import { Grid } from "./Grid";
 import { CastleTower } from "./CastleTower";
 import { CombatCorridor } from "./CombatCorridor";
@@ -10,6 +10,7 @@ import {
 } from "./CombatAnimationLayer";
 import { FloatingCombatText, type CombatTextItem } from "./FloatingCombatText";
 import { sound } from "../../audio/SoundEffects";
+import { socket } from "../../socket/client";
 import styles from "./Battlefield.module.css";
 import { useEffect, useRef, useState } from "react";
 import { CommandInput } from "../input/CommandInput";
@@ -32,6 +33,13 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
   const self = game.players.find((player) => player.connectionId === connectionId);
   const opponent = game.players.find((player) => player.connectionId !== connectionId);
   const [muted, setMuted] = useState(sound.muted);
+  const [rematchStartId, setRematchStartId] = useState<string | null>(null);
+  const rematchWaiting = rematchStartId === game.startId;
+  const [activeBirdLock, setActiveBirdLock] = useState<{
+    active: boolean;
+    targetBirdId: string | null;
+    typedChars: string;
+  } | null>(null);
   const [combatTexts, setCombatTexts] = useState<CombatTextItem[]>([]);
   const [bullets, setBullets] = useState<BulletAnimItem[]>([]);
   const [rockets, setRockets] = useState<RocketAnimItem[]>([]);
@@ -66,6 +74,15 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
   const isLoser = isGameOver && result?.loser === self?.slot;
   const isDraw = isGameOver && (result?.reason === "DRAW" || result?.winner === null);
 
+  const handleRematch = () => {
+    setRematchStartId(game.startId);
+    socket.emit("room:rematch", { roomId: game.roomId }, (res?: { ok: boolean; error?: { message?: string } }) => {
+      if (res && !res.ok) {
+        setRematchStartId(null);
+      }
+    });
+  };
+
   useEffect(() => {
     if (isGameOver && !gameOverSoundPlayed.current) {
       gameOverSoundPlayed.current = true;
@@ -76,6 +93,26 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
 
   useEffect(() => {
     if (!self || !opponent) return;
+
+    if (prevGameRef.current && prevGameRef.current.startId !== game.startId) {
+      prevGameRef.current = game;
+      gameOverSoundPlayed.current = false;
+      setRematchStartId(null);
+      setCombatTexts([]);
+      setBullets([]);
+      setRockets([]);
+      setActiveBirdLock(null);
+      setBattleLog([
+        {
+          id: "init-" + game.startId,
+          time: "00:00",
+          text: t("initLog"),
+          type: "info",
+        },
+      ]);
+      return;
+    }
+
     if (!prevGameRef.current) {
       prevGameRef.current = game;
       return;
@@ -120,17 +157,17 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
       curr.forEach((cell, idx) => {
         const prevCell = prevGrid[idx];
         if (!prevCell) return;
-        const actor = isOpp ? "Đối thủ" : "Bạn";
+        const actor = isOpp ? t("opponent") : t("you");
         if (cell.object && !prevCell.object) {
           const names: Record<string, string> = {
-            PISTOL: "Súng lục",
-            PROTECTOR: "Tường chắn",
-            WATER: "Nước",
-            CLAY: "Đất sét",
-            BRICK: "Gạch",
+            PISTOL: t("objPistol"),
+            PROTECTOR: t("objProtector"),
+            WATER: t("objWater"),
+            CLAY: t("objClay"),
+            BRICK: t("objBrick"),
           };
           const name = names[cell.object.type] ?? cell.object.type;
-          newLogs.push({ id: Math.random().toString(), time: timeStr, text: `⚔️ ${actor} đặt ${name} ở ô ${cell.id}`, type: "info" });
+          newLogs.push({ id: Math.random().toString(), time: timeStr, text: t("logPlaceObject", { actor, name, cellId: cell.id }), type: "info" });
         } else if (cell.object && prevCell.object && cell.object.hp < prevCell.object.hp) {
           const diff = cell.object.hp - prevCell.object.hp;
           newTexts.push({
@@ -143,21 +180,29 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
         } else if (!cell.object && prevCell.object && prevCell.object.hp > 0) {
           newTexts.push({
             id: Math.random().toString(),
-            text: "Phá hủy!",
+            text: t("destroyed"),
             type: "damage",
             location: `cell-${cell.id}-${isOpp ? "opp" : "self"}`,
           });
-          newLogs.push({ id: Math.random().toString(), time: timeStr, text: `💥 Vật thể ở ô ${cell.id} (${actor}) bị phá hủy!`, type: "damage" });
+          const typeNames: Record<string, string> = {
+            PISTOL: t("objPistol"),
+            PROTECTOR: t("objProtector"),
+            WATER: t("objWater"),
+            CLAY: t("objClay"),
+            BRICK: t("objBrick"),
+          };
+          const destroyedName = prevCell.object ? (typeNames[prevCell.object.type] ?? prevCell.object.type) : "Object";
+          newLogs.push({ id: Math.random().toString(), time: timeStr, text: t("logObjectDestroyed", { name: destroyedName, cellId: cell.id, actor }), type: "damage" });
           sound.playHit();
         } else if (cell.object?.type === "BRICK" && prevCell.object?.type !== "BRICK") {
           sound.playCraft();
           newTexts.push({
             id: Math.random().toString(),
-            text: "+Gạch",
+            text: `+${t("objBrick")}`,
             type: "info",
             location: `cell-${cell.id}-${isOpp ? "opp" : "self"}`,
           });
-          newLogs.push({ id: Math.random().toString(), time: timeStr, text: `✨ ${actor} đúc Gạch ở ô ${cell.id}!`, type: "spawn" });
+          newLogs.push({ id: Math.random().toString(), time: timeStr, text: t("logCraftBrick", { actor, cellId: cell.id }), type: "spawn" });
         }
       });
     });
@@ -167,41 +212,35 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
       const prevCell = prevSelf.grid[idx];
       if (cell.object?.type === "PISTOL" && prevCell?.object?.type === "PISTOL" && cell.object.ammo > prevCell.object.ammo) {
         sound.playReload();
-        newLogs.push({ id: Math.random().toString(), time: timeStr, text: `🔄 Nạp đạn súng lục ở ô ${cell.id}!`, type: "info" });
+        newLogs.push({ id: Math.random().toString(), time: timeStr, text: t("logLoadAmmo", { actor: t("you"), cellId: cell.id }), type: "info" });
       }
     });
 
     // Bird spawn & arrow
     if (self.birds.length > prevSelf.birds.length) {
       sound.playBirdSpawn();
-      newLogs.push({ id: Math.random().toString(), time: timeStr, text: `🦅 Bạn thả Chim ném bom sang đối thủ!`, type: "spawn" });
+      newLogs.push({ id: Math.random().toString(), time: timeStr, text: t("logBirdSelf"), type: "spawn" });
     }
     if (opponent.birds.length > prevOpp.birds.length) {
       sound.playBirdSpawn();
-      newLogs.push({ id: Math.random().toString(), time: timeStr, text: `⚠️ Đối thủ thả Chim ném bom sang bạn!`, type: "damage" });
+      newLogs.push({ id: Math.random().toString(), time: timeStr, text: t("logBirdOpp"), type: "damage" });
     }
     if (self.birds.length < prevSelf.birds.length || opponent.birds.length < prevOpp.birds.length) {
       sound.playArrow();
-      newLogs.push({ id: Math.random().toString(), time: timeStr, text: `🏹 Bắn tên trúng Chim!`, type: "action" });
+      newLogs.push({ id: Math.random().toString(), time: timeStr, text: t("logArrowHit"), type: "action" });
     }
 
     const newBullets: BulletAnimItem[] = [];
     const newRockets: RocketAnimItem[] = [];
 
-    const LANE_CELLS = {
-      1: [9, 6, 3],
-      2: [8, 5, 2],
-      3: [7, 4, 1],
-    } as const;
-
-    // Pistol firing (bullets straight to obstacle)
+    // Pistol firing (bullets straight to obstacle along horizontal row)
     self.grid.forEach((cell, idx) => {
       const prevCell = prevSelf.grid[idx];
       if (cell.object?.type === "PISTOL" && prevCell?.object?.type === "PISTOL" && cell.object.ammo < prevCell.object.ammo) {
-        const lane = (cell.id === 1 || cell.id === 4 || cell.id === 7) ? 1 : (cell.id === 2 || cell.id === 5 || cell.id === 8) ? 2 : 3;
-        const targetLane = LANE_CELLS[lane];
+        const row = getCellRow(cell.id);
+        const targetRow = getTargetRowCells(self.slot, row);
         let hitCellId: number | null = null;
-        for (const cid of targetLane) {
+        for (const cid of targetRow) {
           const targetCell = opponent.grid.find((c) => c.id === cid);
           if (targetCell && targetCell.object !== null) {
             hitCellId = cid;
@@ -213,7 +252,7 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
           fromOpponent: false,
           shooterCellId: cell.id,
           hitCellId,
-          lane,
+          lane: row,
         });
       }
     });
@@ -221,10 +260,10 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
     opponent.grid.forEach((cell, idx) => {
       const prevCell = prevOpp.grid[idx];
       if (cell.object?.type === "PISTOL" && prevCell?.object?.type === "PISTOL" && cell.object.ammo < prevCell.object.ammo) {
-        const lane = (cell.id === 1 || cell.id === 4 || cell.id === 7) ? 1 : (cell.id === 2 || cell.id === 5 || cell.id === 8) ? 2 : 3;
-        const targetLane = LANE_CELLS[lane];
+        const row = getCellRow(cell.id);
+        const targetRow = getTargetRowCells(opponent.slot, row);
         let hitCellId: number | null = null;
-        for (const cid of targetLane) {
+        for (const cid of targetRow) {
           const targetCell = self.grid.find((c) => c.id === cid);
           if (targetCell && targetCell.object !== null) {
             hitCellId = cid;
@@ -236,7 +275,7 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
           fromOpponent: true,
           shooterCellId: cell.id,
           hitCellId,
-          lane,
+          lane: row,
         });
       }
     });
@@ -336,9 +375,9 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
   const oppMetrics = metrics ? metrics.players[opponent.slot] : undefined;
 
   return (
-    <section ref={battlefield} className={styles.battlefield} aria-label="Battlefield">
+    <section ref={battlefield} className={styles.battlefield} aria-label={t("appTitle")}>
       {/* 1. LEFT COLUMN: Header (TYPELORE, Mute, Leave) + Battle Log */}
-      <aside className={styles.leftSidebar} aria-label="Thông tin trận đấu và nhật ký">
+      <aside className={styles.leftSidebar} aria-label={t("sidebarAria")}>
         <div className={styles.sidebarHeader}>
           <div className={styles.sidebarBrand}>
             <div className={styles.sidebarTitle}>TYPELORE</div>
@@ -375,9 +414,9 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
       </aside>
 
       {/* 2. CENTER COLUMN: Player HUD (HP & Boost) + 5-Column Arena + Command Input */}
-      <main className={styles.centerStage} aria-label="Khu vực chiến đấu">
+      <main className={styles.centerStage} aria-label={t("arenaStageAria")}>
         {/* Top HUD Bar */}
-        <header className={styles.topHud} aria-label="Thông số trận đấu">
+        <header className={styles.topHud} aria-label={t("topHudAria")}>
           <div className={styles.hudOpponent}>
             <span className={styles.hudLabel}>{t("opponent")}</span>
             <div className={styles.hudHpRow}>
@@ -386,7 +425,7 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
                 className={styles.hudHpBarOpponent}
                 value={opponent.castle.hp}
                 max={opponent.castle.maxHp}
-                aria-label={`Máu đối thủ ${opponent.castle.hp}/${opponent.castle.maxHp}`}
+                aria-label={t("castleHpAria", { hp: opponent.castle.hp, maxHp: opponent.castle.maxHp })}
               />
             </div>
             <div className={styles.hudBoostRow}>
@@ -395,7 +434,7 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
                 className={styles.hudBoostBar}
                 value={opponent.bazookaBoost}
                 max={10}
-                aria-label={`Boost đối thủ ${opponent.bazookaBoost}/10`}
+                aria-label={t("bazookaBoostAria", { boost: opponent.bazookaBoost })}
               />
             </div>
           </div>
@@ -412,7 +451,7 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
                 className={styles.hudHpBarSelf}
                 value={self.castle.hp}
                 max={self.castle.maxHp}
-                aria-label={`Máu của bạn ${self.castle.hp}/${self.castle.maxHp}`}
+                aria-label={t("castleHpAria", { hp: self.castle.hp, maxHp: self.castle.maxHp })}
               />
             </div>
             <div className={styles.hudBoostRow}>
@@ -421,7 +460,7 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
                 className={styles.hudBoostBar}
                 value={self.bazookaBoost}
                 max={10}
-                aria-label={`Boost của bạn ${self.bazookaBoost}/10`}
+                aria-label={t("bazookaBoostAria", { boost: self.bazookaBoost })}
               />
             </div>
           </div>
@@ -435,6 +474,7 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
             opponentBirds={opponent.birds}
             bullets={bullets}
             rockets={rockets}
+            activeBirdLock={activeBirdLock}
           />
 
           <div className={styles.arenaStage}>
@@ -489,6 +529,8 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
             startId={game.startId}
             enabled={!isGameOver}
             battlefield={battlefield}
+            opponentBirds={opponent.birds}
+            onBirdLockChange={setActiveBirdLock}
           />
         </div>
 
@@ -580,21 +622,31 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
                 </div>
               )}
 
-              <button
-                type="button"
-                className={styles.gameOverLeaveBtn}
-                disabled={busy}
-                onClick={onLeave}
-              >
-                {t("returnToLobby")}
-              </button>
+              <div className={styles.gameOverActions}>
+                <button
+                  type="button"
+                  className={styles.rematchBtn}
+                  disabled={rematchWaiting}
+                  onClick={handleRematch}
+                >
+                  {rematchWaiting ? t("rematchWaiting") : t("rematch")}
+                </button>
+                <button
+                  type="button"
+                  className={styles.gameOverLeaveBtn}
+                  disabled={busy}
+                  onClick={onLeave}
+                >
+                  {t("returnToLobby")}
+                </button>
+              </div>
             </div>
           </div>
         )}
       </main>
 
       {/* 3. RIGHT COLUMN: Commands list cheatsheet */}
-      <aside className={styles.rightSidebar} aria-label="Danh sách lệnh khả dụng">
+      <aside className={styles.rightSidebar} aria-label={t("hudAria")}>
         <CommandHud />
       </aside>
     </section>

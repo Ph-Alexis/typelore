@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { RoomCreateSchema, RoomJoinSchema, RoomLeaveSchema, RoomReadySchema,
+import { RoomCreateSchema, RoomJoinSchema, RoomLeaveSchema, RoomReadySchema, RoomRematchSchema,
   type ClientToServerEvents, type ServerToClientEvents, type SocketData,
   type RoomAck, type ProtocolErrorCode, type RoomErrorCode } from "@typelore/shared";
 import type { Server, Socket } from "socket.io";
@@ -52,6 +52,8 @@ export function registerRoomHandlers(io: RoomServer, socket: RoomSocket, rooms: 
     ({ roomId, ready }) => rooms.setReady(socket.id, roomId, ready)));
   socket.on("room:leave", (payload, ack) => action(RoomLeaveSchema, payload, ack,
     ({ roomId }) => rooms.leave(socket.id, roomId), true));
+  socket.on("room:rematch", (payload, ack) => action(RoomRematchSchema, payload, ack,
+    ({ roomId }) => rooms.rematch(socket.id, roomId)));
   socket.on("disconnect", () => {
     const result = rooms.disconnect(socket.id);
     if (result) publish(result);

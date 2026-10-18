@@ -9,6 +9,7 @@ import {
   ARROW_DAMAGE,
   PISTOL_HP,
   PROTECTOR_HP,
+  BirdStateSchema,
   type GameStart,
   type GameState,
 } from "@typelore/shared";
@@ -359,9 +360,9 @@ describe("Air Combat - GameEngine Unit Tests", () => {
     const engine = new GameEngine();
     const { roomId, startId, p1, p2 } = setupGame(engine);
 
-    // P1 sets up Ground Pistol at cell 1 with ammo
-    engine.executeCommand(roomId, p1, { requestId: randomUUID(), roomId, startId, command: "pistol", target: 1 });
-    engine.executeCommand(roomId, p1, { requestId: randomUUID(), roomId, startId, command: "load ammo", target: 1 });
+    // P1 sets up Ground Pistol at cell 7 (Row 1) with ammo
+    engine.executeCommand(roomId, p1, { requestId: randomUUID(), roomId, startId, command: "pistol", target: 7 });
+    engine.executeCommand(roomId, p1, { requestId: randomUUID(), roomId, startId, command: "load ammo", target: 7 });
 
     // P2 sets up Ground Protector at cell 9 (Lane 1 Front)
     engine.executeCommand(roomId, p2, { requestId: randomUUID(), roomId, startId, command: "protector", target: 9 });
@@ -386,7 +387,7 @@ describe("Air Combat - GameEngine Unit Tests", () => {
     expect(p2Bird?.ticksRemaining).toBe(9);
 
     // Also verify: Bird does not damage P1 grid objects
-    const p1Pistol = tickRes.state.players[0].grid.find((c) => c.id === 1)?.object;
+    const p1Pistol = tickRes.state.players[0].grid.find((c) => c.id === 7)?.object;
     expect(p1Pistol?.hp).toBe(PISTOL_HP);
   });
 
@@ -417,5 +418,68 @@ describe("Air Combat - GameEngine Unit Tests", () => {
     // P2 Bird remains completely unaffected at full 15 HP
     const p2Bird = bazookaRes.state.players[1].birds[0];
     expect(p2Bird?.hp).toBe(BIRD_HP);
+  });
+
+  it("TC-AC-13: BirdStateSchema strictly validates 15 lowercase ASCII letters contract", () => {
+    const validBase = {
+      id: randomUUID(),
+      hp: 15,
+      maxHp: 15,
+      createdAt: 1000,
+      flightDurationMs: 10000,
+      ticksRemaining: 10,
+      word: "abcdefghijklmno",
+    };
+
+    // Valid 15 lowercase characters
+    expect(BirdStateSchema.safeParse(validBase).success).toBe(true);
+
+    // Rejects too short (14 chars)
+    expect(BirdStateSchema.safeParse({ ...validBase, word: "abcdefghijklmn" }).success).toBe(false);
+
+    // Rejects too long (16 chars)
+    expect(BirdStateSchema.safeParse({ ...validBase, word: "abcdefghijklmnop" }).success).toBe(false);
+
+    // Rejects uppercase characters
+    expect(BirdStateSchema.safeParse({ ...validBase, word: "ABCDEFGHIJKLMNO" }).success).toBe(false);
+
+    // Rejects non-ASCII / numbers
+    expect(BirdStateSchema.safeParse({ ...validBase, word: "abcdefghijklmn1" }).success).toBe(false);
+
+    // Default missing word provides valid 15-character string
+    const parsedDefault = BirdStateSchema.parse({
+      id: randomUUID(),
+      hp: 15,
+      maxHp: 15,
+      createdAt: 1000,
+      flightDurationMs: 10000,
+      ticksRemaining: 10,
+    });
+    expect(parsedDefault.word).toHaveLength(15);
+    expect(/^[a-z]{15}$/.test(parsedDefault.word)).toBe(true);
+  });
+
+  it("TC-AC-14: GameEngine generated bird challenge words conform to schema", () => {
+    const engine = new GameEngine();
+    const { roomId, startId, p1 } = setupGame(engine);
+
+    for (let i = 0; i < 5; i++) {
+      const res = engine.executeCommand(roomId, p1, {
+        requestId: randomUUID(),
+        roomId,
+        startId,
+        command: "bird and bomb",
+      }, 1000 + i * 30000);
+
+      expect(res.ok).toBe(true);
+      if (res.ok) {
+        const bird = res.state.players[0].birds[res.state.players[0].birds.length - 1];
+        expect(bird).toBeDefined();
+        if (bird) {
+          expect(bird.word).toHaveLength(15);
+          expect(BirdStateSchema.safeParse(bird).success).toBe(true);
+        }
+      }
+    }
   });
 });

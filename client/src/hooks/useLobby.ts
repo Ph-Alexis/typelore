@@ -28,6 +28,7 @@ const errors: Record<RoomErrorCode | ProtocolErrorCode, string> = {
   ROOM_MISMATCH: "Phòng đã thay đổi. Vui lòng thử lại.",
   ROOM_NOT_WAITING: "Chỉ có thể đổi sẵn sàng khi đủ 2 người và trận chưa bắt đầu.",
   ROOM_CODE_EXHAUSTED: "Chưa thể cấp mã phòng. Vui lòng thử lại.",
+  ROOM_NOT_OVER: "Chỉ có thể tái đấu khi trận đấu đã kết thúc.",
 };
 
 export function useLobby(online: boolean) {

@@ -7,7 +7,7 @@ import type {
 import type { GameStateSync } from "./game.js";
 import type { CommandIntent, CommandValidation, CommandErrorCode } from "./command.js";
 import type {
-  GameStart, RoomCreate, RoomJoin, RoomReady, RoomLeave, RoomState,
+  GameStart, RoomCreate, RoomJoin, RoomReady, RoomLeave, RoomRematch, RoomState,
   RoomPlayerJoined, RoomPlayerLeft, RoomErrorCode,
 } from "./room.js";
 
@@ -44,6 +44,7 @@ export interface ClientToServerEvents {
   "room:create": (payload: RoomCreate, acknowledge: (response: RoomAck<{ room: RoomState }>) => void) => void;
   "room:join": (payload: RoomJoin, acknowledge: (response: RoomAck<{ room: RoomState }>) => void) => void;
   "room:ready": (payload: RoomReady, acknowledge: (response: RoomAck<{ room: RoomState }>) => void) => void;
+  "room:rematch": (payload: RoomRematch, acknowledge: (response: RoomAck<{ room?: RoomState }>) => void) => void;
   "room:leave": (payload: RoomLeave, acknowledge: (response: RoomAck<{ roomId: string }>) => void) => void;
   "protocol:hello": (
     payload: ProtocolHello,

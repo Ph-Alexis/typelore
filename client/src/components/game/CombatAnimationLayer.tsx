@@ -72,11 +72,13 @@ export function CombatAnimationLayer({
   opponentBirds,
   bullets,
   rockets,
+  activeBirdLock,
 }: {
   selfBirds: BirdState[];
   opponentBirds: BirdState[];
   bullets: BulletAnimItem[];
   rockets: RocketAnimItem[];
+  activeBirdLock?: { active: boolean; targetBirdId: string | null; typedChars: string } | null;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [coords, setCoords] = useState<ArenaCoordinates | null>(null);
@@ -178,6 +180,11 @@ export function CombatAnimationLayer({
                 />
               </div>
             </div>
+            {bird.word && (
+              <div className={styles.birdWordBadge}>
+                {bird.word}
+              </div>
+            )}
           </div>
         );
       })}
@@ -208,6 +215,22 @@ export function CombatAnimationLayer({
                 />
               </div>
             </div>
+            {bird.word && (
+              <div className={`${styles.birdWordBadge} ${styles.oppBirdWordBadge}`}>
+                {activeBirdLock?.active && activeBirdLock.targetBirdId === bird.id ? (
+                  <>
+                    <span className={styles.typedBirdChars}>
+                      {bird.word.slice(0, activeBirdLock.typedChars.length)}
+                    </span>
+                    <span className={styles.remainingBirdChars}>
+                      {bird.word.slice(activeBirdLock.typedChars.length)}
+                    </span>
+                  </>
+                ) : (
+                  bird.word
+                )}
+              </div>
+            )}
           </div>
         );
       })}
