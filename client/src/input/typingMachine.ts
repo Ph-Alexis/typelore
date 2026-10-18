@@ -56,21 +56,21 @@ export function confirmTyping(state: TypingState): { state: TypingState; intent?
     const directMatch = matchGroundCommand(state.draft);
     if (directMatch) {
       return {
-        state: { ...state, phase: "SUBMIT", command: directMatch.command, feedback: "Đang xác thực lệnh…", error: false },
+        state: { ...state, phase: "SUBMIT", command: directMatch.command, feedback: "cmdValidatingFeedback", error: false },
         intent: directMatch,
       };
     }
     const parsed = parseGameCommand(state.draft);
-    if (!parsed.success) return { state: { ...state, error: true, feedback: "Lệnh không hợp lệ. Kiểm tra tên và khoảng trắng." } };
+    if (!parsed.success) return { state: { ...state, error: true, feedback: "cmdInvalidSyntaxFeedback" } };
     const command = parsed.data;
     if (COMMAND_RULES[command] > 0) return { state: {
       phase: "TARGET", command, draft: "", feedback: "", error: false,
     } };
-    return { state: { ...state, phase: "SUBMIT", command, feedback: "Đang xác thực lệnh…", error: false }, intent: { command } };
+    return { state: { ...state, phase: "SUBMIT", command, feedback: "cmdValidatingFeedback", error: false }, intent: { command } };
   }
   const target = state.command && parseCommandTarget(state.command, state.draft);
-  if (target === null || !state.command) return { state: { ...state, error: true, feedback: "Vị trí không hợp lệ. Nhập đúng một số trong vùng cho phép." } };
-  return { state: { ...state, phase: "SUBMIT", feedback: "Đang xác thực lệnh…", error: false },
+  if (target === null || !state.command) return { state: { ...state, error: true, feedback: "cmdInvalidTargetFeedback" } };
+  return { state: { ...state, phase: "SUBMIT", feedback: "cmdValidatingFeedback", error: false },
     intent: { command: state.command, target } };
 }
 

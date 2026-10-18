@@ -3,6 +3,7 @@ import { GameStartSchema, RoomPlayerJoinedSchema, RoomPlayerLeftSchema, RoomStat
   type GameState, type RoomAck, type RoomState, type RoomErrorCode, type ProtocolErrorCode } from "@typelore/shared";
 import { socket } from "../socket/client";
 import { acceptGameSync } from "./gameSync";
+import type { TranslationKey } from "../i18n/translations";
 
 type Action = "CREATE" | "JOIN" | "READY" | "LEAVE";
 interface LobbyState {
@@ -14,21 +15,21 @@ interface LobbyState {
   game: GameState | null;
 }
 const initial: LobbyState = { room: null, pending: null, error: "", notice: "", startId: null, game: null };
-const errors: Record<RoomErrorCode | ProtocolErrorCode, string> = {
-  INVALID_PAYLOAD: "Yêu cầu không hợp lệ. Vui lòng thử lại.",
-  PROTOCOL_MISMATCH: "Phiên bản không tương thích. Hãy tải lại trang.",
-  INTERNAL_ERROR: "Server gặp lỗi. Vui lòng thử lại.",
-  INVALID_ROOM_CODE: "Mã phòng cần đúng 6 ký tự, không dùng 0, O, 1, I.",
-  PROTOCOL_NOT_READY: "Kết nối chưa sẵn sàng. Hãy tải lại trang.",
-  ALREADY_IN_ROOM: "Bạn đã ở trong một phòng.",
-  ROOM_NOT_FOUND: "Không tìm thấy phòng này.",
-  ROOM_FULL: "Phòng đã đủ 2 người chơi.",
-  ROOM_NOT_JOINABLE: "Phòng đã bắt đầu, không thể tham gia.",
-  NOT_IN_ROOM: "Bạn không còn trong phòng.",
-  ROOM_MISMATCH: "Phòng đã thay đổi. Vui lòng thử lại.",
-  ROOM_NOT_WAITING: "Chỉ có thể đổi sẵn sàng khi đủ 2 người và trận chưa bắt đầu.",
-  ROOM_CODE_EXHAUSTED: "Chưa thể cấp mã phòng. Vui lòng thử lại.",
-  ROOM_NOT_OVER: "Chỉ có thể tái đấu khi trận đấu đã kết thúc.",
+const errors: Record<RoomErrorCode | ProtocolErrorCode, TranslationKey> = {
+  INVALID_PAYLOAD: "errInvalidPayload",
+  PROTOCOL_MISMATCH: "errProtocolMismatch",
+  INTERNAL_ERROR: "errInternalError",
+  INVALID_ROOM_CODE: "errInvalidRoomCode",
+  PROTOCOL_NOT_READY: "errProtocolNotReady",
+  ALREADY_IN_ROOM: "errAlreadyInRoom",
+  ROOM_NOT_FOUND: "errRoomNotFound",
+  ROOM_FULL: "errRoomFull",
+  ROOM_NOT_JOINABLE: "errRoomNotJoinable",
+  NOT_IN_ROOM: "errNotInRoom",
+  ROOM_MISMATCH: "errRoomMismatch",
+  ROOM_NOT_WAITING: "errRoomNotWaiting",
+  ROOM_CODE_EXHAUSTED: "errRoomCodeExhausted",
+  ROOM_NOT_OVER: "errRoomNotOver",
 };
 
 export function useLobby(online: boolean) {
@@ -70,20 +71,20 @@ export function useLobby(online: boolean) {
       startId.current = null;
       game.current = null;
       setState((old) => ({ ...initial, error: old.error,
-        notice: "Kết nối thay đổi. Bạn cần tạo hoặc vào lại phòng." }));
+        notice: "lobbyNoticeConnectionReset" }));
     }
     function update(payload: RoomState): void { applyRoom(payload); }
     function joined(payload: unknown): void {
       const parsed = RoomPlayerJoinedSchema.safeParse(payload);
       if (parsed.success && parsed.data.roomId === room.current?.roomId && parsed.data.revision === room.current.revision) {
-        setState((old) => ({ ...old, notice: "Người chơi đã vào phòng." }));
+        setState((old) => ({ ...old, notice: "lobbyNoticePlayerJoined" }));
       }
     }
     function left(payload: unknown): void {
       const parsed = RoomPlayerLeftSchema.safeParse(payload);
       if (parsed.success && parsed.data.roomId === room.current?.roomId && parsed.data.revision === room.current.revision) {
         setState((old) => ({ ...old, notice: parsed.data.reason === "DISCONNECTED"
-          ? "Đối thủ đã ngắt kết nối. Phòng đang chờ người chơi mới." : "Đối thủ đã rời phòng." }));
+          ? "lobbyNoticeOpponentDisconnected" : "lobbyNoticeOpponentLeft" }));
       }
     }
     function started(payload: unknown): void {
@@ -138,7 +139,7 @@ export function useLobby(online: boolean) {
     setState((old) => ({ ...old, pending: action, error: "", notice: "" }));
     timer.current = setTimeout(() => {
       if (!active.current || generation.current !== token) return;
-      setState((old) => ({ ...old, error: "Chưa xác nhận được yêu cầu. Đang kết nối lại; hãy vào lại phòng." }));
+      setState((old) => ({ ...old, error: "lobbyErrorTimeout" }));
       socket.disconnect();
       socket.connect();
     }, 5000);
@@ -146,13 +147,13 @@ export function useLobby(online: boolean) {
       if (!active.current || generation.current !== token) return;
       clearTimeout(timer.current);
       if (!response.ok) {
-        setState((old) => ({ ...old, pending: null, error: errors[response.error.code] ?? "Yêu cầu thất bại." }));
+        setState((old) => ({ ...old, pending: null, error: errors[response.error.code] ?? "lobbyErrorFailed" }));
       } else if (action === "LEAVE") {
         if (room.current?.roomId === currentRoom?.roomId) {
           room.current = null;
           startId.current = null;
           game.current = null;
-          setState({ ...initial, notice: "Bạn đã rời phòng." });
+          setState({ ...initial, notice: "lobbyNoticeYouLeft" });
         }
       } else if ("room" in response.data) {
         applyRoom(response.data.room);

@@ -4,15 +4,18 @@ import { RoomView } from "./RoomView";
 import { GameStarting } from "./GameStarting";
 import { Battlefield } from "../game/Battlefield";
 import { useLanguage } from "../../i18n/LanguageContext";
+import type { TranslationKey } from "../../i18n/translations";
 import styles from "./Lobby.module.css";
 
 export function Lobby({ online, connectionId }: { online: boolean; connectionId: string | undefined }) {
   const lobby = useLobby(online);
   const { t } = useLanguage();
+  const errorMessage = lobby.error ? t(lobby.error as TranslationKey) || lobby.error : "";
+  const noticeMessage = lobby.notice ? t(lobby.notice as TranslationKey) || lobby.notice : "";
 
   return <section className={styles.lobby} aria-label={t("lobbyTitle")} aria-busy={lobby.pending !== null}>
-    <p className={styles.error} role="alert">{lobby.error}</p>
-    <p aria-live="polite">{lobby.notice}</p>
+    <p className={styles.error} role="alert">{errorMessage}</p>
+    <p aria-live="polite">{noticeMessage}</p>
     {lobby.pending && <p role="status">{t("processing")}</p>}
     {online && (lobby.room ? <>
       {(lobby.room.status === "IN_GAME" || lobby.room.status === "GAME_OVER") ? (lobby.game ?
