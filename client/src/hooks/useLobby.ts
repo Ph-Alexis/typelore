@@ -51,7 +51,7 @@ export function useLobby(online: boolean) {
     } else if (pending.current !== "CREATE" && pending.current !== "JOIN") return;
     if (!previous && pending.current === "JOIN" && next.code !== joinCode.current) return;
     room.current = next;
-    if (next.status !== "STARTING" && next.status !== "IN_GAME") {
+    if (next.status !== "STARTING" && next.status !== "IN_GAME" && next.status !== "GAME_OVER") {
       startId.current = null;
       game.current = null;
     }

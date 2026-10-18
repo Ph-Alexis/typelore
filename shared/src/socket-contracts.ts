@@ -5,6 +5,7 @@ import type {
   ProtocolWelcome,
 } from "./protocol.js";
 import type { GameStateSync } from "./game.js";
+import type { CommandIntent, CommandValidation, CommandErrorCode } from "./command.js";
 import type {
   GameStart, RoomCreate, RoomJoin, RoomReady, RoomLeave, RoomState,
   RoomPlayerJoined, RoomPlayerLeft, RoomErrorCode,
@@ -25,6 +26,7 @@ export type Ack<T, Code extends string = ProtocolErrorCode> =
   | { ok: false; error: ProtocolError<Code>; serverTime: number };
 
 export type RoomAck<T> = Ack<T, ProtocolErrorCode | RoomErrorCode>;
+export type CommandAck = Ack<CommandValidation, CommandErrorCode>;
 export interface SocketData { protocolReady: boolean }
 
 export interface ServerToClientEvents {
@@ -38,6 +40,7 @@ export interface ServerToClientEvents {
 }
 
 export interface ClientToServerEvents {
+  "game:command": (payload: CommandIntent, acknowledge: (response: CommandAck) => void) => void;
   "room:create": (payload: RoomCreate, acknowledge: (response: RoomAck<{ room: RoomState }>) => void) => void;
   "room:join": (payload: RoomJoin, acknowledge: (response: RoomAck<{ room: RoomState }>) => void) => void;
   "room:ready": (payload: RoomReady, acknowledge: (response: RoomAck<{ room: RoomState }>) => void) => void;

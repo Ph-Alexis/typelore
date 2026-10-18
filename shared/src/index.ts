@@ -11,6 +11,7 @@ export type {
 } from "./protocol.js";
 export type {
   Ack,
+  CommandAck,
   ClientToServerEvents,
   ProtocolError,
   ProtocolErrorCode,
@@ -20,3 +21,4 @@ export type {
 } from "./socket-contracts.js";
 export * from "./room.js";
 export * from "./game.js";
+export * from "./command.js";

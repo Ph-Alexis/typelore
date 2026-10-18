@@ -12,7 +12,7 @@ export function Lobby({ online, connectionId }: { online: boolean; connectionId:
     <p aria-live="polite">{lobby.notice}</p>
     {lobby.pending && <p role="status">Đang xử lý yêu cầu…</p>}
     {online && (lobby.room ? <>
-      {lobby.room.status === "IN_GAME" ? (lobby.game ?
+      {(lobby.room.status === "IN_GAME" || lobby.room.status === "GAME_OVER") ? (lobby.game ?
         <Battlefield game={lobby.game} connectionId={connectionId} busy={lobby.pending !== null} onLeave={lobby.leave} /> :
         <><p role="status">Đang đồng bộ trận đấu…</p>
           <button type="button" disabled={lobby.pending !== null} onClick={lobby.leave}>Rời phòng</button></>) : <>

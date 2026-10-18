@@ -12,6 +12,7 @@ import { Server as SocketServer } from "socket.io";
 import { registerProtocolHandlers } from "./socket/registerProtocolHandlers.js";
 import { registerRoomHandlers } from "./socket/registerRoomHandlers.js";
 import { RoomManager } from "./rooms/RoomManager.js";
+import { registerCommandHandlers } from "./socket/registerCommandHandlers.js";
 
 export interface TypeloreServerOptions {
   clientOrigin: string;
@@ -52,7 +53,6 @@ export function createTypeloreServer(
   );
 
   const httpServer = createHttpServer(app);
-  const rooms = new RoomManager();
   const io = new SocketServer<ClientToServerEvents, ServerToClientEvents, Record<string, never>, SocketData>(
     httpServer,
     {
@@ -62,10 +62,16 @@ export function createTypeloreServer(
       },
     },
   );
+  const rooms = new RoomManager({
+    onSync(sync) {
+      io.to(sync.room.players.map((player) => player.connectionId)).emit("game:state-sync", sync);
+    },
+  });
 
   io.on("connection", (socket) => {
     registerProtocolHandlers(socket);
     registerRoomHandlers(io, socket, rooms);
+    registerCommandHandlers(socket, rooms);
   });
 
   return {

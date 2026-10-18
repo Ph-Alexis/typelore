@@ -5,7 +5,7 @@ export const RoomCodeSchema = z.string().regex(/^[23456789ABCDEFGHJKLMNPQRSTUVWX
 export const RoomCodeInputSchema = z.string().max(64).trim().toUpperCase().pipe(RoomCodeSchema);
 export const PlayerSlotSchema = z.enum(["PLAYER_1", "PLAYER_2"]);
 export const RoomStatusSchema = z.enum([
-  "WAITING_FOR_PLAYERS", "READY_TO_START", "STARTING", "IN_GAME",
+  "WAITING_FOR_PLAYERS", "READY_TO_START", "STARTING", "IN_GAME", "GAME_OVER",
 ]);
 export const RoomPlayerSchema = z.object({
   connectionId: z.string().min(1).max(128),
@@ -29,7 +29,7 @@ export const RoomStateSchema = z.object({
     (room.players.length !== 2 || bothReady);
   const invalidStarting = room.status === "STARTING" && !bothReady;
   if (invalidSlots || invalidWaiting || invalidReady || invalidStarting ||
-    (room.players.length === 1 && room.status !== "WAITING_FOR_PLAYERS" && room.status !== "IN_GAME")) {
+    (room.players.length === 1 && room.status !== "WAITING_FOR_PLAYERS" && room.status !== "IN_GAME" && room.status !== "GAME_OVER")) {
     context.addIssue({ code: "custom", message: "The room state is inconsistent." });
   }
 });

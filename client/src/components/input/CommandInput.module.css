@@ -1,0 +1,17 @@
+.command { display: grid; gap: 10px; padding: 16px; border: 1px solid #38bdf8; border-radius: 12px; min-width: 0; }
+.command label { font-weight: 700; }
+.command p { color: #cbd5e1; font-size: .875rem; overflow-wrap: anywhere; }
+.command input { width: 100%; min-width: 0; font-family: "Cascadia Code", Consolas, monospace; }
+.command input[aria-invalid=true], .command [role=alert] { color: #fda4af; }
+
+@keyframes inputShake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-5px); }
+  40%, 80% { transform: translateX(5px); }
+}
+
+.inputShake {
+  animation: inputShake 0.3s ease-in-out;
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.35);
+}
