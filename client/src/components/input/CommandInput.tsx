@@ -26,14 +26,19 @@ export function CommandInput({ roomId, startId, enabled, battlefield }: {
   const hint = state.phase === "TARGET" && state.command ?
     `${state.command} — ${COMMAND_RULES[state.command] === 4 ? "Vùng 1–4" : "Vị trí 1–9"}. Enter để xác nhận, Escape để hủy.` :
     "Nhập lệnh rồi nhấn Enter. Khoảng trắng phải chính xác.";
-  return <section className={`${styles.command} ${state.error ? styles.inputShake : ""}`} aria-label="Nhập lệnh">
-    <label htmlFor={id}>{state.phase === "TARGET" ? "Chọn target" : "Lệnh"}</label>
-    <p id={`${id}-hint`}>{hint}</p>
-    <input ref={input} id={id} type="text" value={state.draft}
-      readOnly={!enabled || state.phase === "SUBMIT"} maxLength={state.phase === "TARGET" ? 16 : 64}
-      autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false}
-      aria-describedby={`${id}-hint ${id}-feedback`} aria-invalid={state.error}
-      onChange={(event) => { event.currentTarget.value = state.draft; }} />
-    <CommandFeedback id={`${id}-feedback`} message={state.feedback} error={state.error} />
-  </section>;
+  return (
+    <section className={`${styles.command} ${state.error ? styles.inputShake : ""}`} aria-label="Nhập lệnh">
+      <div className={styles.commandHeaderRow}>
+        <label htmlFor={id}>{state.phase === "TARGET" ? "🎯 Chọn vị trí:" : "⌨️ Lệnh chiến đấu:"}</label>
+        <p id={`${id}-hint`}>{hint}</p>
+      </div>
+      <input ref={input} id={id} type="text" value={state.draft}
+        placeholder="> Nhập lệnh rồi nhấn Enter (ví dụ: pistol 1, load ammo 1, protector 9, boost...)"
+        readOnly={!enabled || state.phase === "SUBMIT"} maxLength={state.phase === "TARGET" ? 16 : 64}
+        autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false}
+        aria-describedby={`${id}-hint ${id}-feedback`} aria-invalid={state.error}
+        onChange={(event) => { event.currentTarget.value = state.draft; }} />
+      <CommandFeedback id={`${id}-feedback`} message={state.feedback} error={state.error} />
+    </section>
+  );
 }

@@ -61,12 +61,56 @@ export function useCommandInput(roomId: string, startId: string, enabled: boolea
     if (!active.current || !socket.connected || request.current.busy) return;
     const next = confirmTyping(current.current);
     update(next.state);
-    if (!next.intent) return;
+    if (!next.intent) {
+      if (next.state.error && input.current) {
+        const element = input.current;
+        if (caretTask.current !== undefined) cancelAnimationFrame(caretTask.current);
+        caretTask.current = requestAnimationFrame(() => element.select());
+      }
+      return;
+    }
     const intent: CommandIntent = { ...next.intent, roomId, startId, requestId: generateUUID() };
     request.current.submit(intent, (payload, ack) => socket.emit("game:command", payload, ack), (result) => {
       if (!active.current) return;
-      update({ ...initialTypingState, error: "error" in result, feedback: "error" in result ? result.error :
-        "Lệnh đã được thực thi thành công." });
+      if ("error" in result) {
+        if (intent.target !== undefined) {
+          const targetStr = String(intent.target);
+          update({
+            phase: "TARGET",
+            command: intent.command,
+            draft: targetStr,
+            feedback: result.error,
+            error: true,
+          });
+          const element = input.current;
+          if (element) {
+            element.value = targetStr;
+            if (caretTask.current !== undefined) cancelAnimationFrame(caretTask.current);
+            caretTask.current = requestAnimationFrame(() => element.select());
+          }
+          return;
+        }
+        update({
+          phase: "COMMAND",
+          command: null,
+          draft: intent.command,
+          feedback: result.error,
+          error: true,
+        });
+        const element = input.current;
+        if (element) {
+          element.value = intent.command;
+          if (caretTask.current !== undefined) cancelAnimationFrame(caretTask.current);
+          caretTask.current = requestAnimationFrame(() => element.setSelectionRange(intent.command.length, intent.command.length));
+        }
+        return;
+      }
+      update({ ...initialTypingState, error: false, feedback: "Lệnh đã được thực thi thành công." });
+      const element = input.current;
+      if (element) {
+        element.value = "";
+        element.setSelectionRange(0, 0);
+      }
     });
   }
   function cancel() { if (active.current && !request.current.busy) update(initialTypingState); }

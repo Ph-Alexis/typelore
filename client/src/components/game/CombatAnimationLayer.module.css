@@ -1,0 +1,300 @@
+.animationOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 40;
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   1. CHIM BAY ĐƯỜNG THẲNG NGANG (Pure Horizontal Flight in Sky)
+   ========================================================================== */
+.straightBird {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  transition: left 0.9s cubic-bezier(0.25, 1, 0.5, 1);
+  animation: birdHover 0.8s ease-in-out infinite alternate;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.8));
+  pointer-events: none;
+}
+
+.birdFlyLeft .birdAvatar {
+  transform: scaleX(-1);
+}
+
+.birdAvatar {
+  display: flex;
+  align-items: center;
+  font-size: 1.35rem;
+  user-select: none;
+}
+
+.birdWing {
+  font-size: 0.9rem;
+  animation: wingFlap 0.25s ease-in-out infinite alternate;
+  display: inline-block;
+}
+
+.birdBody {
+  display: inline-block;
+}
+
+.birdBomb {
+  font-size: 1rem;
+  animation: bombSwing 0.5s ease-in-out infinite alternate;
+  display: inline-block;
+}
+
+.birdHud {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(15, 23, 42, 0.9);
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.birdTimer {
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #facc15;
+}
+
+.birdHpMini {
+  width: 28px;
+  height: 4px;
+  background: #334155;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.birdHpFill {
+  height: 100%;
+  background: #38bdf8;
+  border-radius: 2px;
+  transition: width 0.2s ease;
+}
+
+.oppBirdHpFill {
+  background: #fb7185;
+}
+
+@keyframes birdHover {
+  0% { transform: translate(-50%, -50%) translateY(-3px); }
+  100% { transform: translate(-50%, -50%) translateY(3px); }
+}
+
+@keyframes wingFlap {
+  0% { transform: rotate(-20deg) scale(0.9); }
+  100% { transform: rotate(20deg) scale(1.1); }
+}
+
+@keyframes bombSwing {
+  0% { transform: rotate(-8deg); }
+  100% { transform: rotate(8deg); }
+}
+
+/* ==========================================================================
+   2. ĐẠN SÚNG LỤC BAY ĐƯỜNG THẲNG NGANG (Pure Horizontal Line, No Tilt)
+   ========================================================================== */
+.straightBullet {
+  position: absolute;
+  pointer-events: none;
+  z-index: 45;
+}
+
+.bulletFly {
+  animation: flyHorizontalBullet 0.35s cubic-bezier(0.2, 0.9, 0.4, 1) forwards;
+}
+
+.bulletBody {
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+.bulletLeft .bulletBody {
+  transform: scaleX(-1);
+}
+
+.bulletHead {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fef08a;
+  box-shadow: 0 0 10px #facc15, 0 0 20px #eab308;
+}
+
+.bulletTrail {
+  position: absolute;
+  top: -1px;
+  left: -40px;
+  height: 3px;
+  width: 40px;
+  background: linear-gradient(90deg, transparent, #facc15);
+  border-radius: 2px;
+}
+
+.bulletImpactAtObstacle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 28px;
+  height: 28px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, #facc15 40%, #ef4444 80%, transparent 100%);
+  opacity: 0;
+  animation: burstAtObstacle 0.16s ease-out 0.28s forwards;
+  box-shadow: 0 0 16px #f59e0b;
+}
+
+@keyframes flyHorizontalBullet {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0.3;
+  }
+  15% {
+    opacity: 1;
+    transform: translate(calc(var(--fly-dx) * 0.15), 0);
+  }
+  90% {
+    opacity: 1;
+    transform: translate(calc(var(--fly-dx) * 0.95), 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--fly-dx), 0);
+  }
+}
+
+@keyframes burstAtObstacle {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.4);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(2);
+  }
+}
+
+/* ==========================================================================
+   3. ROCKET BAZOOKA BAY ĐƯỜNG THẲNG NGANG (Pure Horizontal Line, No Tilt)
+   ========================================================================== */
+.straightRocket {
+  position: absolute;
+  pointer-events: none;
+  animation: flyHorizontalRocket 0.75s cubic-bezier(0.15, 0.85, 0.35, 1) forwards;
+  z-index: 48;
+}
+
+.rocketWarhead {
+  display: flex;
+  align-items: center;
+  font-size: 1.8rem;
+  filter: drop-shadow(0 0 16px rgba(249, 115, 22, 0.9));
+  transform-origin: center center;
+}
+
+.warheadLeft {
+  transform: scaleX(-1);
+}
+
+.rocketEmoji {
+  display: inline-block;
+  transform: rotate(-45deg);
+}
+
+.rocketFlame {
+  font-size: 1.3rem;
+  animation: flameFlicker 0.1s infinite alternate;
+}
+
+.rocketBlastAtObstacle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 96px;
+  height: 96px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, #facc15 30%, #ef4444 70%, transparent 100%);
+  box-shadow: 0 0 40px #f97316;
+  opacity: 0;
+  animation: blastAtObstacle 0.35s ease-out 0.65s forwards;
+}
+
+@keyframes flyHorizontalRocket {
+  0% {
+    transform: translate(0, 0) scale(0.7);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+    transform: translate(calc(var(--fly-dx) * 0.15), 0) scale(1.1);
+  }
+  85% {
+    opacity: 1;
+    transform: translate(calc(var(--fly-dx) * 0.95), 0) scale(1.3);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--fly-dx), 0) scale(1.6);
+  }
+}
+
+@keyframes flameFlicker {
+  0% { transform: scale(0.85); opacity: 0.8; }
+  100% { transform: scale(1.15); opacity: 1; }
+}
+
+@keyframes blastAtObstacle {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.6);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(2.4);
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion Accessibility
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .straightBird {
+    transition: none;
+    animation: none;
+  }
+  .birdWing, .birdBomb {
+    animation: none;
+  }
+  .straightBullet {
+    animation-duration: 0.05s;
+  }
+  .straightRocket {
+    animation-duration: 0.1s;
+  }
+}

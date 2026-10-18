@@ -6,7 +6,7 @@ export function GridCell({ cell }: { cell: GridCellState }) {
 
   if (!object) {
     return (
-      <div className={styles.cell} role="gridcell" aria-label={`Ô ${id}, trống`}>
+      <div className={styles.cell} data-cell-id={id} role="gridcell" aria-label={`Ô ${id}, trống`}>
         <strong>{id}</strong>
         <span>Trống</span>
       </div>
@@ -17,6 +17,7 @@ export function GridCell({ cell }: { cell: GridCellState }) {
     return (
       <div
         className={`${styles.cell} ${styles.pistolCell}`}
+        data-cell-id={id}
         role="gridcell"
         aria-label={`Ô ${id}, Pistol, ${object.hp}/${object.maxHp} HP, ${object.ammo}/${object.maxAmmo} đạn`}
       >
@@ -34,6 +35,7 @@ export function GridCell({ cell }: { cell: GridCellState }) {
     return (
       <div
         className={`${styles.cell} ${styles.protectorCell}`}
+        data-cell-id={id}
         role="gridcell"
         aria-label={`Ô ${id}, Protector (Tanker), ${object.hp}/${object.maxHp} HP`}
       >
@@ -49,6 +51,7 @@ export function GridCell({ cell }: { cell: GridCellState }) {
     return (
       <div
         className={`${styles.cell} ${styles.waterCell}`}
+        data-cell-id={id}
         role="gridcell"
         aria-label={`Ô ${id}, Water, ${object.hp}/${object.maxHp} HP`}
       >
@@ -64,6 +67,7 @@ export function GridCell({ cell }: { cell: GridCellState }) {
     return (
       <div
         className={`${styles.cell} ${styles.clayCell}`}
+        data-cell-id={id}
         role="gridcell"
         aria-label={`Ô ${id}, Clay, ${object.hp}/${object.maxHp} HP`}
       >
@@ -79,6 +83,7 @@ export function GridCell({ cell }: { cell: GridCellState }) {
     return (
       <div
         className={`${styles.cell} ${styles.brickCell}`}
+        data-cell-id={id}
         role="gridcell"
         aria-label={`Ô ${id}, Brick, ${object.hp}/${object.maxHp} HP`}
       >
@@ -91,7 +96,7 @@ export function GridCell({ cell }: { cell: GridCellState }) {
   }
 
   return (
-    <div className={styles.cell} role="gridcell" aria-label={`Ô ${id}`}>
+    <div className={styles.cell} data-cell-id={id} role="gridcell" aria-label={`Ô ${id}`}>
       <strong>{id}</strong>
     </div>
   );

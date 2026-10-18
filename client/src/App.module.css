@@ -15,6 +15,47 @@
   border-radius: 24px;
   background: rgb(15 23 42 / 88%);
   box-shadow: 0 32px 80px rgb(0 0 0 / 35%);
+  transition: width 0.25s ease;
+}
+
+.page:has([aria-label="Battlefield"]) {
+  width: 100vw;
+  max-width: 100vw;
+  height: 100vh;
+  max-height: 100vh;
+  padding: 8px 12px;
+  overflow: hidden;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: stretch;
+}
+
+.panel:has([aria-label="Battlefield"]) {
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  max-height: 100%;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  align-self: stretch;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.panel:has([aria-label="Battlefield"]) > .eyebrow,
+.panel:has([aria-label="Battlefield"]) > h1,
+.panel:has([aria-label="Battlefield"]) > .subtitle,
+.panel:has([aria-label="Battlefield"]) > .statusRow,
+.panel:has([aria-label="Battlefield"]) > .details {
+  display: none;
 }
 
 .eyebrow {
@@ -26,7 +67,7 @@
   text-transform: uppercase;
 }
 
-.panel h1 {
+.panel > h1 {
   margin: 0;
   font-size: clamp(3rem, 12vw, 5.25rem);
   letter-spacing: -0.06em;

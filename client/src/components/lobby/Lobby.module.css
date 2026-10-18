@@ -4,6 +4,20 @@
   padding-top: 16px;
   overflow-wrap: anywhere;
 }
+.lobby:has([aria-label="Battlefield"]) {
+  margin-top: 0;
+  border-top: none;
+  padding-top: 0;
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.lobby:has([aria-label="Battlefield"]) > p:empty {
+  display: none;
+}
 .stack { display: grid; gap: 12px; }
 .lobby h2, .lobby h3, .lobby p { margin: 0; }
 .lobby > p:not(:empty) { margin-bottom: 12px; }

@@ -1,8 +1,65 @@
-.command { display: grid; gap: 10px; padding: 16px; border: 1px solid #38bdf8; border-radius: 12px; min-width: 0; }
-.command label { font-weight: 700; }
-.command p { color: #cbd5e1; font-size: .875rem; overflow-wrap: anywhere; }
-.command input { width: 100%; min-width: 0; font-family: "Cascadia Code", Consolas, monospace; }
-.command input[aria-invalid=true], .command [role=alert] { color: #fda4af; }
+.command {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 14px;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  border-radius: 12px;
+  min-width: 0;
+  background: rgba(15, 23, 42, 0.85);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  box-sizing: border-box;
+}
+
+.commandHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.command label {
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: #38bdf8;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.command p {
+  color: #94a3b8;
+  font-size: 0.74rem;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.command input {
+  width: 100%;
+  min-width: 0;
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #f8fafc;
+  background: #0b1120;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 8px;
+  padding: 8px 12px;
+  box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.command input:focus {
+  outline: none;
+  border-color: #38bdf8;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
+}
+
+.command input[aria-invalid=true], .command [role=alert] {
+  color: #fda4af;
+}
 
 @keyframes inputShake {
   0%, 100% { transform: translateX(0); }
@@ -13,5 +70,5 @@
 .inputShake {
   animation: inputShake 0.3s ease-in-out;
   border-color: #ef4444 !important;
-  box-shadow: 0 0 10px rgba(239, 68, 68, 0.35);
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.45) !important;
 }
