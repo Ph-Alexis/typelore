@@ -86,7 +86,7 @@ export function App() {
     <main className={styles.page}>
       <section className={styles.panel} aria-labelledby="typelore-title">
         <div className={styles.topBar}>
-          <p className={styles.eyebrow}>M05 Ground Combat</p>
+          <p className={styles.eyebrow}>{t("appEyebrow")}</p>
           <LanguageToggle />
         </div>
         <h1 id="typelore-title">{t("appTitle")}</h1>

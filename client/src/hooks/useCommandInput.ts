@@ -139,7 +139,7 @@ export function useCommandInput(
           }
           return;
         }
-        update({ ...initialTypingState, error: false, feedback: "Lệnh đã được thực thi thành công." });
+        update({ ...initialTypingState, error: false, feedback: "cmdSuccessFeedback" });
         const element = input.current;
         if (element) {
           element.value = "";
@@ -208,7 +208,7 @@ export function useCommandInput(
           }
           if (nextTyped.length >= targetWord.length) {
             updateBirdLock(initialBirdLock);
-            update({ ...initialTypingState, error: false, feedback: "Bắn hạ Chim ném bom!" });
+            update({ ...initialTypingState, error: false, feedback: "cmdBirdShotDownFeedback" });
             if (element) {
               if (caretTask.current !== undefined) cancelAnimationFrame(caretTask.current);
               caretTask.current = requestAnimationFrame(() => element.setSelectionRange(0, 0));
