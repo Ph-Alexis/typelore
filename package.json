@@ -21,7 +21,9 @@
     "typecheck": "npm run typecheck -w @typelore/shared && npm run typecheck -w @typelore/server && npm run typecheck -w @typelore/client",
     "lint": "eslint . --max-warnings=0",
     "test": "npm run build -w @typelore/shared && npm run test -w @typelore/server",
-    "check": "npm run lint && npm run typecheck && npm run test && npm run build"
+    "check": "npm run lint && npm run typecheck && npm run test && npm run build",
+    "start": "npm run start -w @typelore/server",
+    "start:server": "npm run start -w @typelore/server"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

@@ -2,7 +2,7 @@ import { z } from "zod";
 
 const EnvironmentSchema = z.object({
   PORT: z.coerce.number().int().min(0).max(65_535).default(3_001),
-  CLIENT_ORIGIN: z.string().url().default("http://localhost:5173"),
+  CLIENT_ORIGIN: z.string().min(1).default("http://localhost:5173"),
 });
 
 export interface ServerEnvironment {
