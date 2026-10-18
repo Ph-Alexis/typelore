@@ -50,6 +50,7 @@
   box-sizing: border-box;
 }
 
+.panel:has([aria-label="Battlefield"]) > .topBar,
 .panel:has([aria-label="Battlefield"]) > .eyebrow,
 .panel:has([aria-label="Battlefield"]) > h1,
 .panel:has([aria-label="Battlefield"]) > .subtitle,
@@ -58,8 +59,15 @@
   display: none;
 }
 
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
 .eyebrow {
-  margin: 0 0 12px;
+  margin: 0;
   color: #7dd3fc;
   font-size: 0.75rem;
   font-weight: 700;

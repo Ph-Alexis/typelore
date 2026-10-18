@@ -14,6 +14,8 @@ import styles from "./Battlefield.module.css";
 import { useEffect, useRef, useState } from "react";
 import { CommandInput } from "../input/CommandInput";
 import { CommandHud } from "./CommandHud";
+import { useLanguage } from "../../i18n/LanguageContext";
+import { LanguageToggle } from "../common/LanguageToggle";
 
 function formatSpeed(chars: number, durationSec: number): string {
   const mins = Math.max(durationSec, 1) / 60;
@@ -25,6 +27,7 @@ function formatSpeed(chars: number, durationSec: number): string {
 export function Battlefield({ game, connectionId, busy, onLeave }: {
   game: GameState; connectionId: string | undefined; busy: boolean; onLeave: () => void;
 }) {
+  const { t } = useLanguage();
   const battlefield = useRef<HTMLElement>(null);
   const self = game.players.find((player) => player.connectionId === connectionId);
   const opponent = game.players.find((player) => player.connectionId !== connectionId);
@@ -36,7 +39,7 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
     {
       id: "init",
       time: "00:00",
-      text: "Trận đấu TYPELORE bắt đầu! Nhập lệnh để tác chiến.",
+      text: t("initLog"),
       type: "info",
     },
   ]);
@@ -93,19 +96,19 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
     if (self.castle.hp < prevSelf.castle.hp) {
       const diff = self.castle.hp - prevSelf.castle.hp;
       newTexts.push({ id: Math.random().toString(), text: `${diff}`, type: "damage", location: "self-castle" });
-      newLogs.push({ id: Math.random().toString(), time: timeStr, text: `🏰 Castle bạn nhận ${Math.abs(diff)} sát thương!`, type: "damage" });
+      newLogs.push({ id: Math.random().toString(), time: timeStr, text: t("castleDamageSelf", { amount: Math.abs(diff) }), type: "damage" });
       sound.playHit();
     } else if (self.castle.hp > prevSelf.castle.hp) {
       const diff = self.castle.hp - prevSelf.castle.hp;
       newTexts.push({ id: Math.random().toString(), text: `+${diff}`, type: "heal", location: "self-castle" });
-      newLogs.push({ id: Math.random().toString(), time: timeStr, text: `❤️ Castle bạn hồi +${diff} HP!`, type: "heal" });
+      newLogs.push({ id: Math.random().toString(), time: timeStr, text: t("castleHealSelf", { amount: diff }), type: "heal" });
       sound.playHeal();
     }
 
     if (opponent.castle.hp < prevOpp.castle.hp) {
       const diff = opponent.castle.hp - prevOpp.castle.hp;
       newTexts.push({ id: Math.random().toString(), text: `${diff}`, type: "damage", location: "opponent-castle" });
-      newLogs.push({ id: Math.random().toString(), time: timeStr, text: `💥 Castle đối thủ nhận ${Math.abs(diff)} sát thương!`, type: "action" });
+      newLogs.push({ id: Math.random().toString(), time: timeStr, text: t("castleDamageOpp", { amount: Math.abs(diff) }), type: "action" });
       sound.playHit();
     }
 
@@ -241,7 +244,7 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
     // Bazooka fired (rockets straight to target area/obstacle)
     if (prevSelf.bazookaBoost === 10 && self.bazookaBoost === 0) {
       sound.playBazooka();
-      newLogs.push({ id: Math.random().toString(), time: timeStr, text: `🚀 Bạn đã phóng BAZOOKA oanh tạc!`, type: "action" });
+      newLogs.push({ id: Math.random().toString(), time: timeStr, text: t("bazookaSelf"), type: "action" });
       const hitCell = opponent.grid.find((c, i) => {
         const pc = prevOpp.grid[i];
         return (c.object && pc?.object && c.object.hp < pc.object.hp) || (!c.object && pc?.object);
@@ -254,7 +257,7 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
     }
     if (prevOpp.bazookaBoost === 10 && opponent.bazookaBoost === 0) {
       sound.playBazooka();
-      newLogs.push({ id: Math.random().toString(), time: timeStr, text: `⚠️ Đối thủ đã phóng BAZOOKA oanh tạc!`, type: "damage" });
+      newLogs.push({ id: Math.random().toString(), time: timeStr, text: t("bazookaOpp"), type: "damage" });
       const hitCell = self.grid.find((c, i) => {
         const pc = prevSelf.grid[i];
         return (c.object && pc?.object && c.object.hp < pc.object.hp) || (!c.object && pc?.object);
@@ -304,7 +307,7 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
         cancelAnimationFrame(frame);
       };
     }
-  }, [game, connectionId, self, opponent]);
+  }, [game, connectionId, self, opponent, t]);
 
   if (!self || !opponent) return null;
 
@@ -314,16 +317,16 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
 
   if (isGameOver) {
     if (isDraw) {
-      resultTitle = "HÒA NHAU!";
-      resultSubtitle = "Cả hai Castle đã sụp đổ cùng lúc.";
+      resultTitle = t("draw");
+      resultSubtitle = t("drawReason");
       resultClass = styles.gameOverDraw ?? "";
     } else if (isWinner) {
-      resultTitle = "CHIẾN THẮNG!";
-      resultSubtitle = "Castle của đối thủ đã bị phá hủy hoàn toàn.";
+      resultTitle = t("victory");
+      resultSubtitle = t("victoryReason");
       resultClass = styles.gameOverVictory ?? "";
     } else if (isLoser) {
-      resultTitle = "THẤT BẠI!";
-      resultSubtitle = "Castle của bạn đã sụp đổ.";
+      resultTitle = t("defeat");
+      resultSubtitle = t("defeatReason");
       resultClass = styles.gameOverDefeat ?? "";
     }
   }
@@ -339,16 +342,19 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
         <div className={styles.sidebarHeader}>
           <div className={styles.sidebarBrand}>
             <div className={styles.sidebarTitle}>TYPELORE</div>
-            <span className={styles.sidebarRoomBadge}>#{game.roomId.slice(0, 6)}</span>
+            <div className={styles.brandControls}>
+              <LanguageToggle />
+              <span className={styles.sidebarRoomBadge}>#{game.roomId.slice(0, 6)}</span>
+            </div>
           </div>
           <div className={styles.sidebarActions}>
             <button
               type="button"
               className={styles.muteBtn}
               onClick={handleToggleMute}
-              aria-label={muted ? "Bật âm thanh" : "Tắt âm thanh"}
+              aria-label={muted ? t("soundMuted") : t("soundOn")}
             >
-              {muted ? "🔇 Tắt âm" : "🔊 Âm thanh"}
+              {muted ? t("soundMuted") : t("soundOn")}
             </button>
             {!isGameOver && (
               <button
@@ -357,7 +363,7 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
                 disabled={busy}
                 onClick={onLeave}
               >
-                Rời phòng
+                {t("leaveRoom")}
               </button>
             )}
           </div>
@@ -373,7 +379,7 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
         {/* Top HUD Bar */}
         <header className={styles.topHud} aria-label="Thông số trận đấu">
           <div className={styles.hudOpponent}>
-            <span className={styles.hudLabel}>OPPONENT</span>
+            <span className={styles.hudLabel}>{t("opponent")}</span>
             <div className={styles.hudHpRow}>
               <span className={styles.hudHpText}>HP {opponent.castle.hp}/{opponent.castle.maxHp}</span>
               <progress
@@ -399,7 +405,7 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
           </div>
 
           <div className={styles.hudSelf}>
-            <span className={styles.hudLabel}>YOU</span>
+            <span className={styles.hudLabel}>{t("self")}</span>
             <div className={styles.hudHpRow}>
               <span className={styles.hudHpText}>HP {self.castle.hp}/{self.castle.maxHp}</span>
               <progress
@@ -441,8 +447,8 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
 
             {/* Opponent Grid */}
             <div className={`${styles.gridSection} ${styles.gridOpponent}`}>
-              <div className={styles.gridSectionHeader}>OPPONENT GRID</div>
-              <Grid cells={opponent.grid} opponent={true} label="Đối thủ" />
+              <div className={styles.gridSectionHeader}>{t("opponentGrid")}</div>
+              <Grid cells={opponent.grid} opponent={true} label={t("opponent")} />
             </div>
 
             {/* Central Neutral Corridor: Birds & Bullets */}
@@ -455,8 +461,8 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
 
             {/* Your Grid */}
             <div className={`${styles.gridSection} ${styles.gridSelf}`}>
-              <div className={styles.gridSectionHeader}>YOUR GRID</div>
-              <Grid cells={self.grid} opponent={false} label="Bạn" />
+              <div className={styles.gridSectionHeader}>{t("yourGrid")}</div>
+              <Grid cells={self.grid} opponent={false} label={t("self")} />
             </div>
 
             {/* Your Castle Tower */}
@@ -470,7 +476,7 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
           {/* SÂN Ground Floor Line */}
           <div className={styles.arenaFloor} aria-hidden="true">
             <span className={styles.floorRail} />
-            <span className={styles.floorBadge}>SÂN</span>
+            <span className={styles.floorBadge}>{t("arenaFloor")}</span>
             <span className={styles.floorRail} />
           </div>
         </div>
@@ -502,70 +508,70 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
               {metrics && selfMetrics && oppMetrics && (
                 <div className={styles.statsContainer}>
                   <div className={styles.statsTitle}>
-                    <span>Thống kê trận đấu</span>
+                    <span>{t("matchStats")}</span>
                     <span>{Math.floor(metrics.durationSeconds / 60)}:{(metrics.durationSeconds % 60).toString().padStart(2, "0")}</span>
                   </div>
-                  <table className={styles.statsTable} aria-label="Bảng thống kê số liệu trận đấu">
+                  <table className={styles.statsTable} aria-label={t("matchStats")}>
                     <thead>
                       <tr>
-                        <th scope="col">Chỉ số</th>
-                        <th scope="col">Bạn</th>
-                        <th scope="col">Đối thủ</th>
+                        <th scope="col">{t("metricCol")}</th>
+                        <th scope="col">{t("youCol")}</th>
+                        <th scope="col">{t("opponentCol")}</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr>
-                        <td>Sát thương Pistol</td>
+                        <td>{t("statPistolDamage")}</td>
                         <td className={styles.statsHighlight}>{selfMetrics.damageDealtPistol}</td>
                         <td>{oppMetrics.damageDealtPistol}</td>
                       </tr>
                       <tr>
-                        <td>Sát thương Chim</td>
+                        <td>{t("statBirdDamage")}</td>
                         <td className={styles.statsHighlight}>{selfMetrics.damageDealtBird}</td>
                         <td>{oppMetrics.damageDealtBird}</td>
                       </tr>
                       <tr>
-                        <td>Sát thương Bazooka</td>
+                        <td>{t("statBazookaDamage")}</td>
                         <td className={styles.statsHighlight}>{selfMetrics.damageDealtBazooka}</td>
                         <td>{oppMetrics.damageDealtBazooka}</td>
                       </tr>
                       <tr>
-                        <td>Sát thương Castle nhận</td>
+                        <td>{t("statCastleDamageTaken")}</td>
                         <td>{selfMetrics.castleDamageTaken}</td>
                         <td className={styles.statsHighlight}>{oppMetrics.castleDamageTaken}</td>
                       </tr>
                       <tr>
-                        <td>Pistol đã đặt / Nạp đạn</td>
+                        <td>{t("statPistolsPlacedAmmo")}</td>
                         <td>{selfMetrics.pistolsPlaced} / {selfMetrics.ammoLoaded}</td>
                         <td>{oppMetrics.pistolsPlaced} / {oppMetrics.ammoLoaded}</td>
                       </tr>
                       <tr>
-                        <td>Protector dựng / bị phá</td>
+                        <td>{t("statProtectors")}</td>
                         <td>{selfMetrics.protectorsPlaced} / {selfMetrics.protectorsDestroyed}</td>
                         <td>{oppMetrics.protectorsPlaced} / {oppMetrics.protectorsDestroyed}</td>
                       </tr>
                       <tr>
-                        <td>Gạch đúc / Hồi máu Castle</td>
+                        <td>{t("statBricksHeal")}</td>
                         <td>{selfMetrics.bricksCrafted} (+{selfMetrics.hpHealed})</td>
                         <td>{oppMetrics.bricksCrafted} (+{oppMetrics.hpHealed})</td>
                       </tr>
                       <tr>
-                        <td>Chim thả / Chim bị bắn hạ</td>
+                        <td>{t("statBirds")}</td>
                         <td>{selfMetrics.birdsLaunched} / {selfMetrics.birdsShotDown}</td>
                         <td>{oppMetrics.birdsLaunched} / {oppMetrics.birdsShotDown}</td>
                       </tr>
                       <tr>
-                        <td>Lệnh hợp lệ / Lỗi</td>
+                        <td>{t("statCommands")}</td>
                         <td>{selfMetrics.validCommands} / {selfMetrics.invalidCommands}</td>
                         <td>{oppMetrics.validCommands} / {oppMetrics.invalidCommands}</td>
                       </tr>
                       <tr>
-                        <td>Ký tự đã gõ</td>
+                        <td>{t("statCharsTyped")}</td>
                         <td>{selfMetrics.charactersTyped}</td>
                         <td>{oppMetrics.charactersTyped}</td>
                       </tr>
                       <tr>
-                        <td>Tốc độ gõ</td>
+                        <td>{t("statTypingSpeed")}</td>
                         <td className={styles.statsHighlight}>{formatSpeed(selfMetrics.charactersTyped, metrics.durationSeconds)}</td>
                         <td>{formatSpeed(oppMetrics.charactersTyped, metrics.durationSeconds)}</td>
                       </tr>
@@ -580,7 +586,7 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
                 disabled={busy}
                 onClick={onLeave}
               >
-                Rời phòng / Về sảnh
+                {t("returnToLobby")}
               </button>
             </div>
           </div>

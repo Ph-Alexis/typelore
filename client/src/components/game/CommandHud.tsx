@@ -1,10 +1,10 @@
 import { useState } from "react";
+import { useLanguage } from "../../i18n/LanguageContext";
 import styles from "./CommandHud.module.css";
 
 interface CommandItem {
   syntax: string;
   desc: string;
-  tag?: string;
 }
 
 interface CommandGroup {
@@ -14,48 +14,8 @@ interface CommandGroup {
   commands: CommandItem[];
 }
 
-const COMMAND_GROUPS: CommandGroup[] = [
-  {
-    category: "Bộ binh & Đạn",
-    icon: "⚔️",
-    colorClass: styles.groupOffense ?? "",
-    commands: [
-      { syntax: "pistol <1–9>", desc: "Đặt súng lục (15 HP)" },
-      { syntax: "load ammo <1–9>", desc: "Nạp +5 đạn (tối đa 10)" },
-    ],
-  },
-  {
-    category: "Phòng thủ & Hồi máu",
-    icon: "🛡️",
-    colorClass: styles.groupDefense ?? "",
-    commands: [
-      { syntax: "protector <1–9>", desc: "Dựng tường chắn (20 HP)" },
-      { syntax: "add water <1–9>", desc: "Đổ nước (10 HP)" },
-      { syntax: "add clay <1–9>", desc: "Đất sét (gặp nước đúc Gạch)" },
-      { syntax: "add brick", desc: "Dùng gạch hồi +15 HP Castle" },
-    ],
-  },
-  {
-    category: "Bazooka hạng nặng",
-    icon: "💥",
-    colorClass: styles.groupHeavy ?? "",
-    commands: [
-      { syntax: "boost", desc: "Tích 1 nấc Bazooka (cần 10 nấc)" },
-      { syntax: "bazooka <1–4>", desc: "Bắn nổ lan 4 ô (sát thương 10)" },
-    ],
-  },
-  {
-    category: "Không chiến",
-    icon: "🦅",
-    colorClass: styles.groupAir ?? "",
-    commands: [
-      { syntax: "bird and bomb", desc: "Thả chim ném bom Castle (-20 HP)" },
-      { syntax: "arrow", desc: "Bắn cung hạ chim gần nhất (-5 HP)" },
-    ],
-  },
-];
-
 export function CommandHud() {
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(() => {
     if (typeof window !== "undefined") {
       try {
@@ -67,6 +27,47 @@ export function CommandHud() {
     }
     return true;
   });
+
+  const commandGroups: CommandGroup[] = [
+    {
+      category: t("groupInfantry"),
+      icon: "⚔️",
+      colorClass: styles.groupOffense ?? "",
+      commands: [
+        { syntax: "pistol <1–9>", desc: t("cmdPistolDesc") },
+        { syntax: "load ammo <1–9>", desc: t("cmdLoadDesc") },
+      ],
+    },
+    {
+      category: t("groupDefense"),
+      icon: "🛡️",
+      colorClass: styles.groupDefense ?? "",
+      commands: [
+        { syntax: "protector <1–9>", desc: t("cmdProtectorDesc") },
+        { syntax: "add water <1–9>", desc: t("cmdWaterDesc") },
+        { syntax: "add clay <1–9>", desc: t("cmdClayDesc") },
+        { syntax: "add brick", desc: t("cmdBrickDesc") },
+      ],
+    },
+    {
+      category: t("groupHeavy"),
+      icon: "💥",
+      colorClass: styles.groupHeavy ?? "",
+      commands: [
+        { syntax: "boost", desc: t("cmdBoostDesc") },
+        { syntax: "bazooka <1–4>", desc: t("cmdBazookaDesc") },
+      ],
+    },
+    {
+      category: t("groupAir"),
+      icon: "🦅",
+      colorClass: styles.groupAir ?? "",
+      commands: [
+        { syntax: "bird and bomb", desc: t("cmdBirdDesc") },
+        { syntax: "arrow", desc: t("cmdArrowDesc") },
+      ],
+    },
+  ];
 
   const handleToggle = () => {
     setIsOpen((prev) => {
@@ -83,11 +84,11 @@ export function CommandHud() {
   };
 
   return (
-    <section className={styles.hudContainer} aria-label="Bảng tra cứu lệnh chiến đấu">
+    <section className={styles.hudContainer} aria-label={t("hudTitle")}>
       <div className={styles.hudHeader}>
         <div className={styles.hudTitle}>
           <span className={styles.hudIcon} aria-hidden="true">📖</span>
-          <span className={styles.hudHeading}>COMMANDS</span>
+          <span className={styles.hudHeading}>{t("hudTitle")}</span>
         </div>
         <button
           type="button"
@@ -96,14 +97,14 @@ export function CommandHud() {
           aria-expanded={isOpen}
           aria-controls="hud-content-panel"
         >
-          {isOpen ? "Thu gọn ▾" : "Hiện lệnh ▴"}
+          {isOpen ? t("hudCollapse") : t("hudExpand")}
         </button>
       </div>
 
       {isOpen && (
         <div id="hud-content-panel" className={styles.hudBody}>
           <div className={styles.groupsGrid}>
-            {COMMAND_GROUPS.map((group) => (
+            {commandGroups.map((group) => (
               <div key={group.category} className={`${styles.groupCard} ${group.colorClass}`}>
                 <h4 className={styles.groupHeader}>
                   <span aria-hidden="true">{group.icon}</span> {group.category}

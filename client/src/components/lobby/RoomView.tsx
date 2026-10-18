@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { RoomState } from "@typelore/shared";
+import { useLanguage } from "../../i18n/LanguageContext";
 import styles from "./Lobby.module.css";
 
 interface Props { room: RoomState; connectionId: string | undefined; busy: boolean; onReady: () => void; onLeave: () => void }
@@ -34,6 +35,7 @@ function fallbackCopyText(text: string): boolean {
 }
 
 export function RoomView({ room, connectionId, busy, onReady, onLeave }: Props) {
+  const { t } = useLanguage();
   const [copyMessage, setCopyMessage] = useState("");
   const self = room.players.find((player) => player.connectionId === connectionId);
 
@@ -41,7 +43,7 @@ export function RoomView({ room, connectionId, busy, onReady, onLeave }: Props) 
     try {
       if (typeof navigator !== "undefined" && navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
         await navigator.clipboard.writeText(room.code);
-        setCopyMessage("Đã sao chép mã phòng.");
+        setCopyMessage(t("codeCopied"));
         return;
       }
     } catch {
@@ -50,30 +52,30 @@ export function RoomView({ room, connectionId, busy, onReady, onLeave }: Props) 
 
     const copied = fallbackCopyText(room.code);
     if (copied) {
-      setCopyMessage("Đã sao chép mã phòng.");
+      setCopyMessage(t("codeCopied"));
     } else {
-      setCopyMessage("Không thể sao chép tự động. Hãy chọn mã phòng và sao chép thủ công.");
+      setCopyMessage(t("copyManual"));
     }
   }
   return <div className={styles.stack}>
-    <h2>Phòng chờ</h2>
-    <div className={styles.codeRow}><span className={styles.code} aria-label={`Mã phòng ${room.code}`}>{room.code}</span>
-      <button type="button" onClick={() => { void copy(); }}>Sao chép</button></div>
+    <h2>{t("waitingRoom")}</h2>
+    <div className={styles.codeRow}><span className={styles.code} aria-label={`${t("roomCode")} ${room.code}`}>{room.code}</span>
+      <button type="button" onClick={() => { void copy(); }}>{t("copyCode")}</button></div>
     <p aria-live="polite">{copyMessage}</p>
     <div className={styles.slots}>
       {(["PLAYER_1", "PLAYER_2"] as const).map((slot, index) => {
         const player = room.players.find((member) => member.slot === slot);
         return <div className={styles.slot} key={slot}>
-          <h3>Player {index + 1} · {index === 0 ? "Host" : "Guest"}</h3>
-          <p>{player ? `${player.connectionId === connectionId ? "Bạn · " : ""}${player.ready ? "Đã sẵn sàng" : "Đã kết nối"}` : "Đang chờ người chơi"}</p>
+          <h3>{t("player")} {index + 1} · {index === 0 ? t("host") : t("guest")}</h3>
+          <p>{player ? `${player.connectionId === connectionId ? `${t("you")} · ` : ""}${player.ready ? t("isReady") : t("isConnected")}` : t("waitingPlayer")}</p>
         </div>;
       })}
     </div>
     <button type="button" className={self?.ready ? styles.ready : styles.primary}
       disabled={busy || room.status !== "READY_TO_START"} aria-pressed={self?.ready ?? false} onClick={onReady}>
-      {self?.ready ? "Hủy sẵn sàng" : "Sẵn sàng"}
+      {self?.ready ? t("cancelReady") : t("ready")}
     </button>
-    {room.players.length < 2 && <p>Chờ đủ 2 người để sẵn sàng.</p>}
-    <button type="button" disabled={busy} onClick={onLeave}>Rời phòng</button>
+    {room.players.length < 2 && <p>{t("waitTwoPlayers")}</p>}
+    <button type="button" disabled={busy} onClick={onLeave}>{t("leaveRoom")}</button>
   </div>;
 }

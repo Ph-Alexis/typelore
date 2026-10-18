@@ -1,4 +1,5 @@
 import type { CastleState } from "@typelore/shared";
+import { useLanguage } from "../../i18n/LanguageContext";
 import styles from "./Battlefield.module.css";
 
 export function CastleTower({
@@ -10,6 +11,7 @@ export function CastleTower({
   boost: number;
   opponent: boolean;
 }) {
+  const { t } = useLanguage();
   const hpPercent = Math.max(0, Math.min(100, Math.round((castle.hp / castle.maxHp) * 100)));
   const isCritical = hpPercent <= 25;
   const isBoostReady = boost >= 10;
@@ -20,7 +22,7 @@ export function CastleTower({
         isBoostReady ? styles.towerBoostReady : ""
       }`}
       data-tower={opponent ? "opponent" : "self"}
-      aria-label={`Tường thành ${opponent ? "Đối thủ" : "Bạn"}`}
+      aria-label={opponent ? t("castleWallOpponentAria") : t("castleWallSelfAria")}
     >
       {/* 1. Stone Crenels at the top */}
       <div className={styles.towerCrenels} aria-hidden="true">
@@ -32,7 +34,7 @@ export function CastleTower({
       {/* 2. Mounted Bazooka Turret Station on the Battlement */}
       <div
         className={`${styles.towerBazookaStation} ${isBoostReady ? styles.bazookaArmReady : ""}`}
-        title={`Bazooka ${isBoostReady ? "SẴN SÀNG" : `Nạp ${boost}/10`}`}
+        title={`Bazooka ${isBoostReady ? t("readyCaps") : `Boost ${boost}/10`}`}
       >
         <div className={styles.towerBazookaWeapon}>
           <span
@@ -48,9 +50,9 @@ export function CastleTower({
         <div className={styles.towerBoostBox}>
           <div className={styles.towerBoostLabel}>
             {isBoostReady ? (
-              <span className={styles.boostReadyText}>READY! (10/10)</span>
+              <span className={styles.boostReadyText}>{t("boostReadyText")}</span>
             ) : (
-              <span>BOOST {boost}/10</span>
+              <span>{t("boost")} {boost}/10</span>
             )}
           </div>
           <progress
@@ -59,7 +61,7 @@ export function CastleTower({
             }`}
             value={boost}
             max={10}
-            aria-label={`Bazooka Boost ${boost}/10`}
+            aria-label={t("bazookaBoostAria", { boost })}
           />
         </div>
       </div>
@@ -67,7 +69,7 @@ export function CastleTower({
       <div className={styles.towerDivider} aria-hidden="true" />
 
       {/* 3. Castle Wall & Title */}
-      <div className={styles.towerTitle}>TƯỜNG THÀNH</div>
+      <div className={styles.towerTitle}>{t("castleWall")}</div>
       <div className={styles.towerIcon} aria-hidden="true">🏰</div>
 
       {/* 4. Castle HP */}
@@ -79,7 +81,7 @@ export function CastleTower({
           className={styles.towerProgress}
           value={castle.hp}
           max={castle.maxHp}
-          aria-label={`Máu tường thành ${castle.hp}/${castle.maxHp}`}
+          aria-label={t("castleHpAria", { hp: castle.hp, maxHp: castle.maxHp })}
         />
       </div>
     </aside>

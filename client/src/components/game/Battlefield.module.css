@@ -46,6 +46,11 @@
   text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
   white-space: nowrap;
 }
+.brandControls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 .sidebarRoomBadge {
   font-family: "Cascadia Code", Consolas, monospace;
   font-size: 0.72rem;

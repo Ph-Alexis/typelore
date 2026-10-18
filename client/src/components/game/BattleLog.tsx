@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useLanguage } from "../../i18n/LanguageContext";
 import styles from "./BattleLog.module.css";
 
 export interface BattleLogEntry {
@@ -9,6 +10,7 @@ export interface BattleLogEntry {
 }
 
 export function BattleLog({ entries }: { entries: BattleLogEntry[] }) {
+  const { t } = useLanguage();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -18,14 +20,14 @@ export function BattleLog({ entries }: { entries: BattleLogEntry[] }) {
   }, [entries]);
 
   return (
-    <section className={styles.logContainer} aria-label="Battle Log">
+    <section className={styles.logContainer} aria-label={t("battleLogTitle")}>
       <div className={styles.logHeader}>
-        <span className={styles.logTitle}>BATTLE LOG</span>
-        <span className={styles.logBadge}>{entries.length} sự kiện</span>
+        <span className={styles.logTitle}>{t("battleLogTitle")}</span>
+        <span className={styles.logBadge}>{t("eventsCount", { count: entries.length })}</span>
       </div>
       <div ref={scrollRef} className={styles.logList} role="log" aria-live="polite">
         {entries.length === 0 ? (
-          <div className={styles.emptyLog}>Trận đấu bắt đầu. Nhập lệnh để tác chiến...</div>
+          <div className={styles.emptyLog}>{t("initLog")}</div>
         ) : (
           entries.map((entry) => (
             <div
