@@ -221,7 +221,7 @@ export function useCommandInput(
     );
 
     // 3. Auto-submit without Enter key upon exact syntax match
-    // Check full ground command first regardless of phase (e.g. user typed "pistol 4" or "protector 2" or "boost")
+    // Check full ground command first regardless of phase (e.g. user typed "pistol 4" or "protector 2" or "bird and bomb")
     const match = matchGroundCommand(result.draft);
     if (match) {
       update({ phase: "COMMAND", command: null, draft: result.draft, feedback: "", error: false });

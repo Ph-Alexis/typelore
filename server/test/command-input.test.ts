@@ -8,7 +8,8 @@ import { CommandRequest } from "../../client/src/input/commandRequest.js";
 afterEach(() => vi.useRealTimers());
 describe("typing transitions and edit policy", () => {
   it("auto-submits ground commands upon exact match and rejects arrow from ground auto-submit", () => {
-    expect(matchGroundCommand("boost")).toEqual({ command: "boost" });
+    expect(matchGroundCommand("bird and bomb")).toEqual({ command: "bird and bomb" });
+    expect(matchGroundCommand("boost")).toBeNull();
     expect(matchGroundCommand("add brick 5")).toEqual({ command: "use brick" });
     expect(matchGroundCommand("use brick 5")).toEqual({ command: "use brick" });
     expect(matchGroundCommand("add brick")).toBeNull();
@@ -26,17 +27,17 @@ describe("typing transitions and edit policy", () => {
     expect(target.intent).toEqual({ command: "pistol", target: 9 });
     expect(target.state.phase).toBe("SUBMIT");
     expect(confirmTyping(target.state).intent).toBeUndefined();
-    expect(confirmTyping({ ...initialTypingState, draft: "boost" }).intent).toEqual({ command: "boost" });
-    expect(confirmTyping({ ...initialTypingState, draft: "boost " }).state.error).toBe(true);
+    expect(confirmTyping({ ...initialTypingState, draft: "bird and bomb" }).intent).toEqual({ command: "bird and bomb" });
+    expect(confirmTyping({ ...initialTypingState, draft: "bird and bomb " }).state.error).toBe(true);
 
     // Typing a full command like "pistol 4" while in TARGET phase executes successfully without error
     const recovered = confirmTyping({ ...command.state, draft: "pistol 4" });
     expect(recovered.intent).toEqual({ command: "pistol", target: 4 });
     expect(recovered.state.phase).toBe("SUBMIT");
 
-    // Typing another command like "boost" or "add brick 5" while in TARGET phase also executes
-    const switchCmd = confirmTyping({ ...command.state, draft: "boost" });
-    expect(switchCmd.intent).toEqual({ command: "boost" });
+    // Typing another command like "bird and bomb" or "add brick 5" while in TARGET phase also executes
+    const switchCmd = confirmTyping({ ...command.state, draft: "bird and bomb" });
+    expect(switchCmd.intent).toEqual({ command: "bird and bomb" });
     const brickCmd = confirmTyping({ ...command.state, draft: "add brick 5" });
     expect(brickCmd.intent).toEqual({ command: "use brick" });
 
@@ -91,7 +92,7 @@ describe("typing transitions and edit policy", () => {
 });
 
 describe("command request lifecycle", () => {
-  const intent = (): CommandIntent => ({ requestId: randomUUID(), roomId: randomUUID(), startId: randomUUID(), command: "boost" });
+  const intent = (): CommandIntent => ({ requestId: randomUUID(), roomId: randomUUID(), startId: randomUUID(), command: "bird and bomb" });
   it("allows one request, rejects malformed/uncorrelated ACKs and handles success once", () => {
     vi.useFakeTimers(); const coordinator = new CommandRequest(); const payload = intent();
     let callback: (value: unknown) => void = () => { throw new Error("not sent"); };

@@ -132,16 +132,6 @@ describe("Milestone M10: Polish & Playtest Metrics Test Suite", () => {
       target: 7,
     });
 
-    // P1 boosts 10 times
-    for (let i = 0; i < 10; i++) {
-      engine.executeCommand(roomId, p1, {
-        requestId: randomUUID(),
-        roomId,
-        startId,
-        command: "boost",
-      });
-    }
-
     // P1 fires bazooka at area 1 (cells 7, 8, 4, 5)
     const bazookaRes = engine.executeCommand(roomId, p1, {
       requestId: randomUUID(),
@@ -413,15 +403,7 @@ describe("Milestone M10: Polish & Playtest Metrics Test Suite", () => {
     engine.clear();
     engine.commit(snapshot);
 
-    // P1 boosts 10 times and fires bazooka
-    for (let i = 0; i < 10; i++) {
-      engine.executeCommand(roomId, p1, {
-        requestId: randomUUID(),
-        roomId,
-        startId,
-        command: "boost",
-      });
-    }
+    // P1 fires bazooka
     engine.executeCommand(roomId, p1, {
       requestId: randomUUID(),
       roomId,

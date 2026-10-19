@@ -228,7 +228,7 @@ describe("M06 Crafting & Healing Engine", () => {
     if (!clayOnProtector.ok) expect(clayOnProtector.code).toBe("CELL_OCCUPIED");
   });
 
-  it("rejects add brick when no Brick is on the battlefield", () => {
+  it("rejects use brick when no Brick is on the battlefield", () => {
     const engine = new GameEngine();
     const { roomId, startId, p1 } = setupGame(engine);
 

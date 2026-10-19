@@ -28,7 +28,7 @@ export function Lobby({ online, connectionId }: { online: boolean; connectionId:
     {!isPlaying && lobby.pending ? <p role="status">{t("processing")}</p> : null}
     {online && (lobby.room ? <>
       {(lobby.room.status === "IN_GAME" || lobby.room.status === "GAME_OVER") ? (lobby.game ?
-        <Battlefield game={lobby.game} connectionId={connectionId} busy={lobby.pending !== null} onLeave={lobby.leave} /> :
+        <Battlefield game={lobby.game} room={lobby.room} connectionId={connectionId} busy={lobby.pending !== null} onLeave={lobby.leave} /> :
         <><p role="status">{t("syncingMatch")}</p>
           <button type="button" disabled={lobby.pending !== null} onClick={lobby.leave}>{t("leaveRoom")}</button></>) : <>
       {lobby.room.status === "STARTING" && <GameStarting />}

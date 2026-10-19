@@ -199,6 +199,33 @@
 .hudBirdCooldown {
   color: #facc15;
 }
+.hudBazookaRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  max-width: 320px;
+}
+.hudSelf .hudBazookaRow {
+  justify-content: flex-end;
+}
+.hudBazookaIcon {
+  font-size: 0.95rem;
+}
+.hudBazookaText {
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+.hudBazookaReady {
+  color: #38bdf8;
+  text-shadow: 0 0 6px rgba(56, 189, 248, 0.6);
+}
+.hudBazookaCooldown {
+  color: #facc15;
+}
 .hudBoostText {
   font-size: 0.75rem;
   font-weight: 600;
@@ -399,6 +426,10 @@
   background: rgba(250, 204, 21, 0.12);
   box-shadow: 0 0 10px rgba(250, 204, 21, 0.25);
 }
+.bazookaArmCooldown {
+  border-color: rgba(148, 163, 184, 0.25);
+  background: rgba(15, 23, 42, 0.5);
+}
 .towerBazookaWeapon {
   display: flex;
   align-items: center;
@@ -454,6 +485,11 @@
   color: #facc15;
   font-weight: 800;
   text-shadow: 0 0 8px rgba(250, 204, 21, 0.8);
+  letter-spacing: 0.05em;
+}
+.bazookaCountdownText {
+  color: #facc15;
+  font-weight: 700;
   letter-spacing: 0.05em;
 }
 .towerBoostProgress {
@@ -787,21 +823,32 @@
 }
 
 .gameOverOverlay {
-  display: grid;
-  place-items: center;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(8, 10, 20, 0.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 20px;
-  border-radius: 16px;
-  background: rgba(10, 10, 18, 0.94);
-  border: 2px solid;
-  backdrop-filter: blur(8px);
   animation: fadeIn 0.3s ease-out;
 }
 .gameOverCard {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 12px;
   text-align: center;
-  max-width: 400px;
+  max-width: 520px;
   width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 24px;
+  border-radius: 18px;
+  background: #0f1322;
+  border: 2px solid #334155;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85);
 }
 .gameOverTitle {
   margin: 0;
@@ -880,25 +927,168 @@
   background: #334155;
   transform: translateY(-1px);
 }
-.gameOverVictory {
+.rematchSlotsSection {
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+.rematchSlotsTitle {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #94a3b8;
+}
+.rematchSlots {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.rematchSlot {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+.rematchSlotReady {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.6);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
+}
+.rematchSlotHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #cbd5e1;
+}
+.rematchSlotRole {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.rematchYouBadge {
+  background: #0284c7;
+  color: #fff;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+.rematchSlotStatus {
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.readyText {
+  color: #34d399;
+}
+.waitingText {
+  color: #94a3b8;
+}
+.rematchNoticePulse {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #38bdf8;
+  text-align: center;
+  animation: pulseNotice 1.4s infinite;
+}
+@keyframes pulseNotice {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(0.98); }
+}
+.rematchBtnPulse {
+  animation: rematchGlow 1.2s infinite alternate;
+  background: rgba(56, 189, 248, 0.3) !important;
+  border-color: #38bdf8 !important;
+  color: #ffffff !important;
+}
+@keyframes rematchGlow {
+  from { box-shadow: 0 0 8px rgba(56, 189, 248, 0.3); }
+  to { box-shadow: 0 0 20px rgba(56, 189, 248, 0.8); }
+}
+
+.countdownOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 7, 15, 0.7);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  pointer-events: none;
+  animation: fadeIn 0.2s ease-out;
+}
+.countdownBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  animation: countdownPop 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+.countdownNumber {
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 6.5rem;
+  font-weight: 900;
+  color: #38bdf8;
+  text-shadow: 0 0 35px rgba(56, 189, 248, 0.85), 0 0 70px rgba(56, 189, 248, 0.45);
+  line-height: 1;
+}
+.countdownFight {
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 5rem;
+  font-weight: 900;
+  color: #f59e0b;
+  text-shadow: 0 0 40px rgba(245, 158, 11, 0.95), 0 0 80px rgba(239, 68, 68, 0.55);
+  letter-spacing: 3px;
+  line-height: 1;
+}
+.countdownSub {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #cbd5e1;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+}
+@keyframes countdownPop {
+  0% { transform: scale(0.3); opacity: 0; }
+  45% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.gameOverVictory .gameOverCard {
   border-color: #eab308;
-  box-shadow: 0 0 24px rgba(234, 179, 8, 0.35);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85), 0 0 35px rgba(234, 179, 8, 0.35);
 }
 .gameOverVictory .gameOverTitle {
   color: #facc15;
   text-shadow: 0 0 12px rgba(250, 204, 21, 0.6);
 }
-.gameOverDefeat {
+.gameOverDefeat .gameOverCard {
   border-color: #ef4444;
-  box-shadow: 0 0 24px rgba(239, 68, 68, 0.35);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85), 0 0 35px rgba(239, 68, 68, 0.35);
 }
 .gameOverDefeat .gameOverTitle {
   color: #f87171;
   text-shadow: 0 0 12px rgba(248, 113, 113, 0.6);
 }
-.gameOverDraw {
+.gameOverDraw .gameOverCard {
   border-color: #94a3b8;
-  box-shadow: 0 0 20px rgba(148, 163, 184, 0.3);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85), 0 0 30px rgba(148, 163, 184, 0.3);
 }
 .gameOverDraw .gameOverTitle {
   color: #cbd5e1;

@@ -94,6 +94,13 @@ export class RoomManager {
     const result = this.games.executeCommand(room.roomId, connectionId, intent);
     if (!result.ok) return { ok: false, code: result.code };
 
+    if (result.state.status === "GAME_OVER") {
+      this.stopCombatTimer(room.code);
+      room.status = "GAME_OVER";
+      room.players.forEach((p) => { p.ready = false; });
+      room.revision += 1;
+    }
+
     const updatedRoom = this.snapshot(room);
     if (result.changed) {
       const sync: GameStateSync = { room: updatedRoom, state: result.state, serverTime: this.now() };
@@ -134,6 +141,7 @@ export class RoomManager {
       if (result.state.status === "GAME_OVER") {
         this.stopCombatTimer(code);
         room.status = "GAME_OVER";
+        room.players.forEach((p) => { p.ready = false; });
         room.revision += 1;
       }
       const sync: GameStateSync = { room: this.snapshot(room), state: result.state, serverTime: this.now() };
@@ -233,6 +241,10 @@ export class RoomManager {
       this.rematchVotes.set(room.code, votes);
     }
     votes.add(connectionId);
+
+    room.players.forEach((p) => {
+      p.ready = votes ? votes.has(p.connectionId) : false;
+    });
 
     if (votes.size === 2) {
       this.rematchVotes.delete(room.code);

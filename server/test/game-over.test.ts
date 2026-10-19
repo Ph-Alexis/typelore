@@ -175,7 +175,7 @@ describe("Milestone M09: Game Over & Reliability Test Suite", () => {
       requestId: randomUUID(),
       roomId,
       startId,
-      command: "boost",
+      command: "bird and bomb",
     });
     expect(cmdResult).toEqual({ ok: false, code: "GAME_NOT_ACTIVE" });
   });
@@ -264,7 +264,7 @@ describe("Milestone M09: Game Over & Reliability Test Suite", () => {
       requestId: randomUUID(),
       roomId,
       startId,
-      command: "boost",
+      command: "bird and bomb",
     });
     expect(validateRes).toEqual({ ok: false, code: "GAME_NOT_ACTIVE" });
 
@@ -273,7 +273,7 @@ describe("Milestone M09: Game Over & Reliability Test Suite", () => {
       requestId: randomUUID(),
       roomId,
       startId,
-      command: "boost",
+      command: "bird and bomb",
     });
     expect(execRes).toEqual({ ok: false, code: "GAME_NOT_ACTIVE" });
   });

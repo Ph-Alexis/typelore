@@ -14,6 +14,7 @@ const commandErrors: Record<CommandErrorCode, string> = {
   INVALID_TARGET: "cmdErrInvalidTarget",
   NO_BRICK_AVAILABLE: "cmdErrNoBrickAvailable",
   BOOST_NOT_READY: "cmdErrBoostNotReady",
+  BAZOOKA_ON_COOLDOWN: "cmdErrBazookaOnCooldown",
   BIRD_ON_COOLDOWN: "cmdErrBirdOnCooldown",
   NO_AIR_TARGET: "cmdErrNoAirTarget",
 };

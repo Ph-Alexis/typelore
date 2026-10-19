@@ -13,8 +13,8 @@ import {
   CLAY_HP,
   BRICK_HP,
   BRICK_HEAL,
-  BAZOOKA_REQUIRED_BOOST,
   BAZOOKA_DAMAGE,
+  BAZOOKA_COOLDOWN_MS,
   BAZOOKA_AREAS,
   BIRD_HP,
   BIRD_DAMAGE,
@@ -95,6 +95,7 @@ export function createInitialGameState(start: GameStart): GameState {
       slot: player.slot,
       connectionId: player.connectionId,
       castle: { hp: CASTLE_HP, maxHp: CASTLE_HP },
+      bazookaCooldownUntil: 0,
       bazookaBoost: 0,
       birdCooldownUntil: 0,
       birds: [],
@@ -288,23 +289,13 @@ export class GameEngine {
       return { ok: true, state: structuredClone(state), changed: true };
     }
 
-    if (intent.command === "boost") {
-      player.bazookaBoost = Math.min(BAZOOKA_REQUIRED_BOOST, player.bazookaBoost + 1);
-      if (playerMetrics) {
-        playerMetrics.validCommands += 1;
-        playerMetrics.charactersTyped += typedLen;
-      }
-      state.revision += 1;
-      return { ok: true, state: structuredClone(state), changed: true };
-    }
-
     if (intent.command === "bazooka") {
       const areaKey = (typeof intent.target === "string" ? intent.target.toUpperCase() : intent.target) as BazookaAreaId;
       if (!intent.target || !(areaKey in BAZOOKA_AREAS)) {
         return fail("INVALID_TARGET");
       }
-      if (player.bazookaBoost < BAZOOKA_REQUIRED_BOOST) {
-        return fail("BOOST_NOT_READY");
+      if (now < player.bazookaCooldownUntil) {
+        return fail("BAZOOKA_ON_COOLDOWN");
       }
       const opponent = state.players.find((p) => p.connectionId !== connectionId);
       if (!opponent) return { ok: false, code: "NOT_IN_ROOM" };
@@ -327,6 +318,7 @@ export class GameEngine {
           }
         }
       }
+      player.bazookaCooldownUntil = now + BAZOOKA_COOLDOWN_MS;
       player.bazookaBoost = 0;
       if (playerMetrics) {
         playerMetrics.validCommands += 1;

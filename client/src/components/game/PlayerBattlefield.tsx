@@ -18,7 +18,10 @@ export function PlayerBattlefield({ player, opponent }: { player: PlayerBattlefi
         </span>
       </div>
       <Castle castle={player.castle} label={label} />
-      <BazookaStatus boost={player.bazookaBoost} label={label} />
+      <BazookaStatus
+        cooldownUntil={player.bazookaCooldownUntil}
+        label={label}
+      />
       <AirStatus
         cooldownUntil={player.birdCooldownUntil}
         birds={player.birds}
