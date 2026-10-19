@@ -17,10 +17,10 @@ export function matchGroundCommand(raw: string): ParsedCommand | null {
   if (!text) return null;
 
   // 1. Zero-target commands (must be exact match without trailing spaces)
-  const zeroTargetCommands = ["boost", "bird and bomb", "use brick"] as const;
+  const zeroTargetCommands = ["boost", "bird and bomb", "use brick", "add brick"] as const;
   for (const cmd of zeroTargetCommands) {
     if (text === cmd) {
-      return { command: cmd };
+      return { command: cmd === "add brick" ? "use brick" : cmd };
     }
   }
 
@@ -52,14 +52,14 @@ export function editDraft(draft: string, start: number, end: number,
 }
 export function confirmTyping(state: TypingState): { state: TypingState; intent?: ParsedCommand } {
   if (state.phase === "SUBMIT") return { state };
+  const directMatch = matchGroundCommand(state.draft);
+  if (directMatch) {
+    return {
+      state: { ...state, phase: "SUBMIT", command: directMatch.command, feedback: "cmdValidatingFeedback", error: false },
+      intent: directMatch,
+    };
+  }
   if (state.phase === "COMMAND") {
-    const directMatch = matchGroundCommand(state.draft);
-    if (directMatch) {
-      return {
-        state: { ...state, phase: "SUBMIT", command: directMatch.command, feedback: "cmdValidatingFeedback", error: false },
-        intent: directMatch,
-      };
-    }
     const parsed = parseGameCommand(state.draft);
     if (!parsed.success) return { state: { ...state, error: true, feedback: "cmdInvalidSyntaxFeedback" } };
     const command = parsed.data;

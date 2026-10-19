@@ -32,12 +32,12 @@
 .birdAvatar {
   display: flex;
   align-items: center;
-  font-size: 1.35rem;
+  font-size: 1.55rem;
   user-select: none;
 }
 
 .birdWing {
-  font-size: 0.9rem;
+  font-size: 1.1rem;
   animation: wingFlap 0.25s ease-in-out infinite alternate;
   display: inline-block;
 }
@@ -47,7 +47,7 @@
 }
 
 .birdBomb {
-  font-size: 1rem;
+  font-size: 1.2rem;
   animation: bombSwing 0.5s ease-in-out infinite alternate;
   display: inline-block;
 }
@@ -90,35 +90,39 @@
 
 .birdWordBadge {
   font-family: "Cascadia Code", Consolas, monospace;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
   color: #38bdf8;
-  background: rgba(15, 23, 42, 0.95);
-  border: 1px solid rgba(56, 189, 248, 0.5);
-  box-shadow: 0 0 8px rgba(56, 189, 248, 0.35);
-  padding: 1px 6px;
-  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.96);
+  border: 1.5px solid rgba(56, 189, 248, 0.6);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.45);
+  padding: 3px 12px;
+  border-radius: 8px;
   white-space: nowrap;
   user-select: none;
 }
 
 .oppBirdWordBadge {
+  font-size: 1.35rem;
+  letter-spacing: 0.18em;
   color: #facc15;
-  border-color: #fb7185;
-  box-shadow: 0 0 10px rgba(251, 113, 133, 0.5);
+  border: 2px solid #fb7185;
+  box-shadow: 0 0 16px rgba(251, 113, 133, 0.7);
+  padding: 4px 14px;
 }
 
 .typedBirdChars {
   color: #34d399;
   text-decoration: underline;
   font-weight: 900;
-  text-shadow: 0 0 6px rgba(52, 211, 153, 0.9);
+  text-shadow: 0 0 8px rgba(52, 211, 153, 0.95);
 }
 
 .remainingBirdChars {
   color: #facc15;
-  opacity: 0.9;
+  opacity: 0.95;
+  font-weight: 900;
 }
 
 @keyframes birdHover {

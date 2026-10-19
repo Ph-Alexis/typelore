@@ -10,6 +10,7 @@ describe("typing transitions and edit policy", () => {
   it("auto-submits ground commands upon exact match and rejects arrow from ground auto-submit", () => {
     expect(matchGroundCommand("boost")).toEqual({ command: "boost" });
     expect(matchGroundCommand("use brick")).toEqual({ command: "use brick" });
+    expect(matchGroundCommand("add brick")).toEqual({ command: "use brick" });
     expect(matchGroundCommand("pistol 1")).toEqual({ command: "pistol", target: 1 });
     expect(matchGroundCommand("bazooka a")).toEqual({ command: "bazooka", target: "A" });
     expect(matchGroundCommand("arrow")).toBeNull();
@@ -26,6 +27,17 @@ describe("typing transitions and edit policy", () => {
     expect(confirmTyping(target.state).intent).toBeUndefined();
     expect(confirmTyping({ ...initialTypingState, draft: "boost" }).intent).toEqual({ command: "boost" });
     expect(confirmTyping({ ...initialTypingState, draft: "boost " }).state.error).toBe(true);
+
+    // Typing a full command like "pistol 4" while in TARGET phase executes successfully without error
+    const recovered = confirmTyping({ ...command.state, draft: "pistol 4" });
+    expect(recovered.intent).toEqual({ command: "pistol", target: 4 });
+    expect(recovered.state.phase).toBe("SUBMIT");
+
+    // Typing another command like "boost" or "add brick" while in TARGET phase also executes
+    const switchCmd = confirmTyping({ ...command.state, draft: "boost" });
+    expect(switchCmd.intent).toEqual({ command: "boost" });
+    const brickCmd = confirmTyping({ ...command.state, draft: "add brick" });
+    expect(brickCmd.intent).toEqual({ command: "use brick" });
   });
   it("edits selections and caret without truncating invalid input into a valid target", () => {
     expect(editDraft("pistol", 3, 3, "Backspace", 64)).toEqual({ draft: "pitol", caret: 2 });

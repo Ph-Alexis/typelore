@@ -55,6 +55,22 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
   const gameOverSoundPlayed = useRef(false);
   const timersRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
 
+  const [hudNow, setHudNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!self || !opponent) return;
+    const hasCooldown =
+      (self.birdCooldownUntil > 0 && hudNow < self.birdCooldownUntil) ||
+      (opponent.birdCooldownUntil > 0 && hudNow < opponent.birdCooldownUntil);
+    if (!hasCooldown) return;
+    const interval = setInterval(() => setHudNow(Date.now()), 250);
+    return () => clearInterval(interval);
+  }, [self?.birdCooldownUntil, opponent?.birdCooldownUntil, hudNow, self, opponent]);
+
+  const selfBirdReady = !self || self.birdCooldownUntil <= 0 || hudNow >= self.birdCooldownUntil;
+  const selfRemainingSec = selfBirdReady ? 0 : Math.max(0, Math.ceil((self.birdCooldownUntil - hudNow) / 1000));
+  const oppBirdReady = !opponent || opponent.birdCooldownUntil <= 0 || hudNow >= opponent.birdCooldownUntil;
+  const oppRemainingSec = oppBirdReady ? 0 : Math.max(0, Math.ceil((opponent.birdCooldownUntil - hudNow) / 1000));
+
   useEffect(() => {
     const timers = timersRef.current;
     return () => {
@@ -375,7 +391,7 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
   const oppMetrics = metrics ? metrics.players[opponent.slot] : undefined;
 
   return (
-    <section ref={battlefield} className={styles.battlefield} aria-label={t("appTitle")}>
+    <section ref={battlefield} className={styles.battlefield} data-screen="battlefield" aria-label="Battlefield">
       {/* 1. LEFT COLUMN: Header (TYPELORE, Mute, Leave) + Battle Log */}
       <aside className={styles.leftSidebar} aria-label={t("sidebarAria")}>
         <div className={styles.sidebarHeader}>
@@ -428,6 +444,12 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
                 aria-label={t("castleHpAria", { hp: opponent.castle.hp, maxHp: opponent.castle.maxHp })}
               />
             </div>
+            <div className={styles.hudBirdRow}>
+              <span className={styles.hudBirdIcon} aria-hidden="true">🦅</span>
+              <span className={`${styles.hudBirdText} ${oppBirdReady ? styles.hudBirdReady : styles.hudBirdCooldown}`}>
+                BIRD {oppBirdReady ? t("readyCaps") : `${oppRemainingSec}s`}
+              </span>
+            </div>
             <div className={styles.hudBoostRow}>
               <span className={styles.hudBoostText}>BOOST {opponent.bazookaBoost}/10</span>
               <progress
@@ -453,6 +475,12 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
                 max={self.castle.maxHp}
                 aria-label={t("castleHpAria", { hp: self.castle.hp, maxHp: self.castle.maxHp })}
               />
+            </div>
+            <div className={styles.hudBirdRow}>
+              <span className={`${styles.hudBirdText} ${selfBirdReady ? styles.hudBirdReady : styles.hudBirdCooldown}`}>
+                BIRD {selfBirdReady ? t("readyCaps") : `${selfRemainingSec}s`}
+              </span>
+              <span className={styles.hudBirdIcon} aria-hidden="true">🦅</span>
             </div>
             <div className={styles.hudBoostRow}>
               <span className={styles.hudBoostText}>BOOST {self.bazookaBoost}/10</span>
@@ -482,6 +510,7 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
             <CastleTower
               castle={opponent.castle}
               boost={opponent.bazookaBoost}
+              birdCooldownUntil={opponent.birdCooldownUntil}
               opponent={true}
             />
 
@@ -509,6 +538,7 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
             <CastleTower
               castle={self.castle}
               boost={self.bazookaBoost}
+              birdCooldownUntil={self.birdCooldownUntil}
               opponent={false}
             />
           </div>

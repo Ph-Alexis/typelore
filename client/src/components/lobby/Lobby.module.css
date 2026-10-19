@@ -4,7 +4,8 @@
   padding-top: 16px;
   overflow-wrap: anywhere;
 }
-.lobby:has([aria-label="Battlefield"]) {
+.lobby:has([aria-label="Battlefield"]),
+.lobby:has([data-screen="battlefield"]) {
   margin-top: 0;
   border-top: none;
   padding-top: 0;
@@ -15,7 +16,8 @@
   flex-direction: column;
   overflow: hidden;
 }
-.lobby:has([aria-label="Battlefield"]) > p:empty {
+.lobby:has([aria-label="Battlefield"]) > p:empty,
+.lobby:has([data-screen="battlefield"]) > p:empty {
   display: none;
 }
 .stack { display: grid; gap: 12px; }

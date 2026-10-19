@@ -43,9 +43,11 @@ function getFallbackCell(gridType: "self" | "opponent", cellId: number, w = 900,
       : cellId === 4 || cellId === 5 || cellId === 6
       ? 1
       : 2;
+  const oppColIndex = 2 - colIndex;
+  const col = gridType === "opponent" ? oppColIndex : colIndex;
   const baseX = gridType === "opponent" ? 0.2 : 0.66;
   return {
-    x: Math.round((baseX + colIndex * 0.08) * w),
+    x: Math.round((baseX + col * 0.08) * w),
     y: Math.round((0.3 + rowIndex * 0.2) * h),
   };
 }
@@ -149,7 +151,7 @@ export function CombatAnimationLayer({
   };
 
   // Fixed horizontal altitude across the sky so birds never tilt or fly diagonally
-  const skyY = 34;
+  const skyY = 38;
 
   return (
     <div ref={containerRef} className={styles.animationOverlay} aria-hidden="true">

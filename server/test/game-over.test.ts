@@ -89,7 +89,7 @@ describe("Milestone M09: Game Over & Reliability Test Suite", () => {
         createdAt: 1000,
         flightDurationMs: BIRD_FLIGHT_TIME_MS,
         ticksRemaining: 1,
-        word: "abcdefghijklmno",
+        word: "abcdefghijkl",
       });
     });
 

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import type { CastleState } from "@typelore/shared";
 import { useLanguage } from "../../i18n/LanguageContext";
 import styles from "./Battlefield.module.css";
@@ -5,16 +6,28 @@ import styles from "./Battlefield.module.css";
 export function CastleTower({
   castle,
   boost,
+  birdCooldownUntil = 0,
   opponent,
 }: {
   castle: CastleState;
   boost: number;
+  birdCooldownUntil?: number;
   opponent: boolean;
 }) {
   const { t } = useLanguage();
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (birdCooldownUntil <= 0 || now >= birdCooldownUntil) return;
+    const interval = setInterval(() => setNow(Date.now()), 250);
+    return () => clearInterval(interval);
+  }, [birdCooldownUntil, now]);
+
   const hpPercent = Math.max(0, Math.min(100, Math.round((castle.hp / castle.maxHp) * 100)));
   const isCritical = hpPercent <= 25;
   const isBoostReady = boost >= 10;
+  const isBirdReady = birdCooldownUntil <= 0 || now >= birdCooldownUntil;
+  const birdRemainingSec = isBirdReady ? 0 : Math.max(0, Math.ceil((birdCooldownUntil - now) / 1000));
 
   return (
     <aside
@@ -31,7 +44,21 @@ export function CastleTower({
         <span />
       </div>
 
-      {/* 2. Mounted Bazooka Turret Station on the Battlement */}
+      {/* 2. Mounted Bird Aviary Station (Above Bazooka) */}
+      <div
+        className={`${styles.towerBirdStation} ${isBirdReady ? styles.birdStationReady : styles.birdStationCooldown}`}
+        title={`Bird & Bomb: ${isBirdReady ? t("readyCaps") : `${birdRemainingSec}s`}`}
+        aria-label={`Bird & Bomb: ${isBirdReady ? t("readyCaps") : `${birdRemainingSec}s`}`}
+      >
+        <div className={styles.towerBirdWeapon}>
+          <span className={styles.birdStationIcon} aria-hidden="true">🦅</span>
+          <span className={styles.birdCountdownBadge}>
+            {isBirdReady ? t("readyCaps") : `${birdRemainingSec}s`}
+          </span>
+        </div>
+      </div>
+
+      {/* 3. Mounted Bazooka Turret Station on the Battlement */}
       <div
         className={`${styles.towerBazookaStation} ${isBoostReady ? styles.bazookaArmReady : ""}`}
         title={`Bazooka ${isBoostReady ? t("readyCaps") : `Boost ${boost}/10`}`}

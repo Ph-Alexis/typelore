@@ -7,7 +7,7 @@ export const GRID_COLUMNS = 3;
 export const GRID_CELL_COUNT = GRID_ROWS * GRID_COLUMNS;
 export const GRID_CELL_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 export const NUMPAD_CELL_ORDER = [7, 8, 9, 4, 5, 6, 1, 2, 3] as const;
-export const OPPONENT_CELL_ORDER = [3, 2, 1, 6, 5, 4, 9, 8, 7] as const;
+export const OPPONENT_CELL_ORDER = [9, 8, 7, 6, 5, 4, 3, 2, 1] as const;
 
 export const GridCellIdSchema = z.number().int().min(1).max(GRID_CELL_COUNT);
 export const CastleStateSchema = z.object({
@@ -41,14 +41,9 @@ export function getCellRow(cellId: number): CombatRow {
 }
 
 export function getTargetRowCells(
-  shooterSlot: "PLAYER_1" | "PLAYER_2",
+  _shooterSlot: "PLAYER_1" | "PLAYER_2",
   row: CombatRow,
 ): readonly [number, number, number] {
-  if (shooterSlot === "PLAYER_1") {
-    if (row === 1) return [9, 8, 7] as const;
-    if (row === 2) return [6, 5, 4] as const;
-    return [3, 2, 1] as const;
-  }
   return COMBAT_ROWS[row];
 }
 
@@ -66,7 +61,8 @@ export type BazookaAreaId = "A" | "B" | "C" | "D" | 1 | 2 | 3 | 4;
 export const BIRD_HP = 15;
 export const BIRD_DAMAGE = 20;
 export const BIRD_FLIGHT_TIME_MS = 10000;
-export const BIRD_COOLDOWN_MS = 20000;
+export const BIRD_COOLDOWN_MS = 60000;
+export const BIRD_WORD_LENGTH = 12;
 export const ARROW_DAMAGE = 5;
 export const BIRD_FLIGHT_TICKS = 10;
 
@@ -77,7 +73,7 @@ export const BirdStateSchema = z.object({
   createdAt: z.number().finite().nonnegative(),
   flightDurationMs: z.literal(BIRD_FLIGHT_TIME_MS),
   ticksRemaining: z.number().int().min(0).max(BIRD_FLIGHT_TICKS),
-  word: z.string().regex(/^[a-z]{15}$/, "Bird challenge word must be exactly 15 lowercase ASCII letters").default("typelorecombats"),
+  word: z.string().regex(/^[a-z]{12}$/, "Bird challenge word must be exactly 12 lowercase ASCII letters").default("typelorecomb"),
 }).strict();
 
 export const PistolObjectSchema = z.object({

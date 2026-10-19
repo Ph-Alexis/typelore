@@ -27,7 +27,7 @@ describe("battlefield schemas and engine", () => {
     state.players[0].castle.hp = 1;
     expect(state.players[1].castle.hp).toBe(200);
     expect(NUMPAD_CELL_ORDER).toEqual([7, 8, 9, 4, 5, 6, 1, 2, 3]);
-    expect(OPPONENT_CELL_ORDER).toEqual([...NUMPAD_CELL_ORDER].reverse());
+    expect(OPPONENT_CELL_ORDER).toEqual([9, 8, 7, 6, 5, 4, 3, 2, 1]);
   });
 
   it("rejects invalid HP, cells, grid sizes/order, identities and envelope fields", () => {

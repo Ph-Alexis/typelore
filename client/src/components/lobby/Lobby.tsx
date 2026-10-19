@@ -13,10 +13,12 @@ export function Lobby({ online, connectionId }: { online: boolean; connectionId:
   const errorMessage = lobby.error ? t(lobby.error as TranslationKey) || lobby.error : "";
   const noticeMessage = lobby.notice ? t(lobby.notice as TranslationKey) || lobby.notice : "";
 
+  const isPlaying = (lobby.room?.status === "IN_GAME" || lobby.room?.status === "GAME_OVER") && Boolean(lobby.game);
+
   return <section className={styles.lobby} aria-label={t("lobbyTitle")} aria-busy={lobby.pending !== null}>
-    <p className={styles.error} role="alert">{errorMessage}</p>
-    <p aria-live="polite">{noticeMessage}</p>
-    {lobby.pending && <p role="status">{t("processing")}</p>}
+    {!isPlaying && errorMessage ? <p className={styles.error} role="alert">{errorMessage}</p> : null}
+    {!isPlaying && noticeMessage ? <p aria-live="polite">{noticeMessage}</p> : null}
+    {!isPlaying && lobby.pending ? <p role="status">{t("processing")}</p> : null}
     {online && (lobby.room ? <>
       {(lobby.room.status === "IN_GAME" || lobby.room.status === "GAME_OVER") ? (lobby.game ?
         <Battlefield game={lobby.game} connectionId={connectionId} busy={lobby.pending !== null} onLeave={lobby.leave} /> :
