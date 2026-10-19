@@ -9,8 +9,9 @@ afterEach(() => vi.useRealTimers());
 describe("typing transitions and edit policy", () => {
   it("auto-submits ground commands upon exact match and rejects arrow from ground auto-submit", () => {
     expect(matchGroundCommand("boost")).toEqual({ command: "boost" });
-    expect(matchGroundCommand("use brick")).toEqual({ command: "use brick" });
-    expect(matchGroundCommand("add brick")).toEqual({ command: "use brick" });
+    expect(matchGroundCommand("add brick 5")).toEqual({ command: "use brick" });
+    expect(matchGroundCommand("use brick 5")).toEqual({ command: "use brick" });
+    expect(matchGroundCommand("add brick")).toBeNull();
     expect(matchGroundCommand("pistol 1")).toEqual({ command: "pistol", target: 1 });
     expect(matchGroundCommand("bazooka a")).toEqual({ command: "bazooka", target: "A" });
     expect(matchGroundCommand("arrow")).toBeNull();
@@ -33,11 +34,22 @@ describe("typing transitions and edit policy", () => {
     expect(recovered.intent).toEqual({ command: "pistol", target: 4 });
     expect(recovered.state.phase).toBe("SUBMIT");
 
-    // Typing another command like "boost" or "add brick" while in TARGET phase also executes
+    // Typing another command like "boost" or "add brick 5" while in TARGET phase also executes
     const switchCmd = confirmTyping({ ...command.state, draft: "boost" });
     expect(switchCmd.intent).toEqual({ command: "boost" });
-    const brickCmd = confirmTyping({ ...command.state, draft: "add brick" });
+    const brickCmd = confirmTyping({ ...command.state, draft: "add brick 5" });
     expect(brickCmd.intent).toEqual({ command: "use brick" });
+
+    // Bare "add brick" and "use brick" without target cell number are strictly rejected
+    const bareAddBrick = confirmTyping({ ...initialTypingState, draft: "add brick" });
+    expect(bareAddBrick.intent).toBeUndefined();
+    expect(bareAddBrick.state.error).toBe(true);
+    expect(bareAddBrick.state.feedback).toBe("cmdInvalidTargetFeedback");
+
+    const bareUseBrick = confirmTyping({ ...initialTypingState, draft: "use brick" });
+    expect(bareUseBrick.intent).toBeUndefined();
+    expect(bareUseBrick.state.error).toBe(true);
+    expect(bareUseBrick.state.feedback).toBe("cmdInvalidTargetFeedback");
   });
   it("edits selections and caret without truncating invalid input into a valid target", () => {
     expect(editDraft("pistol", 3, 3, "Backspace", 64)).toEqual({ draft: "pitol", caret: 2 });

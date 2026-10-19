@@ -22,3 +22,4 @@ export type {
 export * from "./room.js";
 export * from "./game.js";
 export * from "./command.js";
+export * from "./tutorial.js";

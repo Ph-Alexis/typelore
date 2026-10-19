@@ -3,8 +3,13 @@ import { RoomCodeInputSchema } from "@typelore/shared";
 import { useLanguage } from "../../i18n/LanguageContext";
 import styles from "./Lobby.module.css";
 
-interface Props { busy: boolean; onCreate: () => void; onJoin: (code: string) => void }
-export function LobbyHome({ busy, onCreate, onJoin }: Props) {
+interface Props {
+  busy: boolean;
+  onCreate: () => void;
+  onJoin: (code: string) => void;
+  onStartTutorial: () => void;
+}
+export function LobbyHome({ busy, onCreate, onJoin, onStartTutorial }: Props) {
   const { t } = useLanguage();
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
@@ -18,6 +23,9 @@ export function LobbyHome({ busy, onCreate, onJoin }: Props) {
   return <div className={styles.stack}>
     <h2>{t("lobbyTitle")}</h2>
     <button className={styles.primary} type="button" disabled={busy} onClick={onCreate}>{t("createNewRoom")}</button>
+    <button className={styles.tutorialBtn} type="button" disabled={busy} onClick={onStartTutorial}>
+      🎮 {t("startTutorial")}
+    </button>
     <form onSubmit={submit} className={styles.stack}>
       <label htmlFor="room-code">{t("roomCode")}</label>
       <input id="room-code" value={code} onChange={(event) => { setCode(event.target.value.toUpperCase()); setError(""); }}

@@ -17,6 +17,9 @@ export const translations = {
     // Lobby
     lobbyTitle: "Sảnh chờ",
     createNewRoom: "Tạo phòng mới",
+    startTutorial: "Chơi thử với Bot (Hướng dẫn)",
+    exitTutorial: "Dừng hướng dẫn",
+    tutorialTitle: "CHẾ ĐỘ HUẤN LUYỆN (TUTORIAL)",
     roomCode: "Mã phòng",
     roomCodeHelp: "6 ký tự, không dùng 0, O, 1, I.",
     roomCodeError: "Nhập mã phòng 6 ký tự, không dùng 0, O, 1, I.",
@@ -231,6 +234,9 @@ export const translations = {
     // Lobby
     lobbyTitle: "Lobby",
     createNewRoom: "Create New Room",
+    startTutorial: "Practice with Bot (Tutorial)",
+    exitTutorial: "Exit Tutorial",
+    tutorialTitle: "TUTORIAL MODE",
     roomCode: "Room Code",
     roomCodeHelp: "6 characters, excluding 0, O, 1, I.",
     roomCodeError: "Enter 6-char room code, without 0, O, 1, I.",

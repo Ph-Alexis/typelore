@@ -19,7 +19,9 @@
 }
 
 .page:has([aria-label="Battlefield"]),
-.page:has([data-screen="battlefield"]) {
+.page:has([data-screen="battlefield"]),
+.page:has([data-screen="tutorial"]),
+.page:has([aria-label="Tutorial Battlefield"]) {
   width: 100vw;
   max-width: 100vw;
   height: 100vh;
@@ -34,7 +36,9 @@
 }
 
 .panel:has([aria-label="Battlefield"]),
-.panel:has([data-screen="battlefield"]) {
+.panel:has([data-screen="battlefield"]),
+.panel:has([data-screen="tutorial"]),
+.panel:has([aria-label="Tutorial Battlefield"]) {
   width: 100%;
   max-width: 100%;
   height: 100%;
@@ -63,7 +67,19 @@
 .panel:has([data-screen="battlefield"]) > h1,
 .panel:has([data-screen="battlefield"]) > .subtitle,
 .panel:has([data-screen="battlefield"]) > .statusRow,
-.panel:has([data-screen="battlefield"]) > .details {
+.panel:has([data-screen="battlefield"]) > .details,
+.panel:has([data-screen="tutorial"]) > .topBar,
+.panel:has([data-screen="tutorial"]) > .eyebrow,
+.panel:has([data-screen="tutorial"]) > h1,
+.panel:has([data-screen="tutorial"]) > .subtitle,
+.panel:has([data-screen="tutorial"]) > .statusRow,
+.panel:has([data-screen="tutorial"]) > .details,
+.panel:has([aria-label="Tutorial Battlefield"]) > .topBar,
+.panel:has([aria-label="Tutorial Battlefield"]) > .eyebrow,
+.panel:has([aria-label="Tutorial Battlefield"]) > h1,
+.panel:has([aria-label="Tutorial Battlefield"]) > .subtitle,
+.panel:has([aria-label="Tutorial Battlefield"]) > .statusRow,
+.panel:has([aria-label="Tutorial Battlefield"]) > .details {
   display: none;
 }
 

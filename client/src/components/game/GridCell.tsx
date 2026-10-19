@@ -2,13 +2,18 @@ import type { GridCellState } from "@typelore/shared";
 import { useLanguage } from "../../i18n/LanguageContext";
 import styles from "./Battlefield.module.css";
 
-export function GridCell({ cell }: { cell: GridCellState }) {
+export function GridCell({ cell, highlighted }: { cell: GridCellState; highlighted?: boolean }) {
   const { t } = useLanguage();
   const { id, object } = cell;
 
   if (!object) {
     return (
-      <div className={styles.cell} data-cell-id={id} role="gridcell" aria-label={`Cell ${id}, ${t("emptyCell")}`}>
+      <div
+        className={`${styles.cell} ${highlighted ? styles.cellHighlighted : ""}`}
+        data-cell-id={id}
+        role="gridcell"
+        aria-label={`Cell ${id}, ${t("emptyCell")}`}
+      >
         <strong>{id}</strong>
         <span>{t("emptyCell")}</span>
       </div>
@@ -18,7 +23,7 @@ export function GridCell({ cell }: { cell: GridCellState }) {
   if (object.type === "PISTOL") {
     return (
       <div
-        className={`${styles.cell} ${styles.pistolCell}`}
+        className={`${styles.cell} ${styles.pistolCell} ${highlighted ? styles.cellHighlighted : ""}`}
         data-cell-id={id}
         role="gridcell"
         aria-label={`Cell ${id}, Pistol, ${object.hp}/${object.maxHp} HP, ${object.ammo}/${object.maxAmmo} ${t("ammo").toLowerCase()}`}
@@ -36,7 +41,7 @@ export function GridCell({ cell }: { cell: GridCellState }) {
   if (object.type === "PROTECTOR") {
     return (
       <div
-        className={`${styles.cell} ${styles.protectorCell}`}
+        className={`${styles.cell} ${styles.protectorCell} ${highlighted ? styles.cellHighlighted : ""}`}
         data-cell-id={id}
         role="gridcell"
         aria-label={`Cell ${id}, Protector, ${object.hp}/${object.maxHp} HP`}
@@ -52,7 +57,7 @@ export function GridCell({ cell }: { cell: GridCellState }) {
   if (object.type === "WATER") {
     return (
       <div
-        className={`${styles.cell} ${styles.waterCell}`}
+        className={`${styles.cell} ${styles.waterCell} ${highlighted ? styles.cellHighlighted : ""}`}
         data-cell-id={id}
         role="gridcell"
         aria-label={`Cell ${id}, Water, ${object.hp}/${object.maxHp} HP`}
@@ -68,7 +73,7 @@ export function GridCell({ cell }: { cell: GridCellState }) {
   if (object.type === "CLAY") {
     return (
       <div
-        className={`${styles.cell} ${styles.clayCell}`}
+        className={`${styles.cell} ${styles.clayCell} ${highlighted ? styles.cellHighlighted : ""}`}
         data-cell-id={id}
         role="gridcell"
         aria-label={`Cell ${id}, Clay, ${object.hp}/${object.maxHp} HP`}
@@ -84,7 +89,7 @@ export function GridCell({ cell }: { cell: GridCellState }) {
   if (object.type === "BRICK") {
     return (
       <div
-        className={`${styles.cell} ${styles.brickCell}`}
+        className={`${styles.cell} ${styles.brickCell} ${highlighted ? styles.cellHighlighted : ""}`}
         data-cell-id={id}
         role="gridcell"
         aria-label={`Cell ${id}, Brick, ${object.hp}/${object.maxHp} HP`}

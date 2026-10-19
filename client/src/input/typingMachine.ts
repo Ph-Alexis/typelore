@@ -17,18 +17,34 @@ export function matchGroundCommand(raw: string): ParsedCommand | null {
   if (!text) return null;
 
   // 1. Zero-target commands (must be exact match without trailing spaces)
-  const zeroTargetCommands = ["boost", "bird and bomb", "use brick", "add brick"] as const;
+  // "add brick" and "use brick" are removed so bare typing does not auto-submit!
+  const zeroTargetCommands = ["boost", "bird and bomb"] as const;
   for (const cmd of zeroTargetCommands) {
     if (text === cmd) {
-      return { command: cmd === "add brick" ? "use brick" : cmd };
+      return { command: cmd };
     }
   }
 
   // 2. Commands with target
-  const targetCommands = ["load ammo", "add water", "add clay", "pistol", "protector", "bazooka"] as const;
+  const targetCommands = [
+    "load ammo",
+    "add water",
+    "add clay",
+    "pistol",
+    "protector",
+    "bazooka",
+    "add brick",
+    "use brick",
+  ] as const;
   for (const cmd of targetCommands) {
     if (text.startsWith(cmd + " ")) {
       const remainder = text.slice(cmd.length + 1);
+      if (cmd === "add brick" || cmd === "use brick") {
+        if (/^[1-9]$/.test(remainder)) {
+          return { command: "use brick" };
+        }
+        return null;
+      }
       const target = parseCommandTarget(cmd, remainder);
       if (target !== null) {
         return { command: cmd, target };
@@ -60,9 +76,16 @@ export function confirmTyping(state: TypingState): { state: TypingState; intent?
     };
   }
   if (state.phase === "COMMAND") {
+    const trimmed = state.draft.trim().toLowerCase();
+    if (trimmed === "add brick" || trimmed === "use brick") {
+      return { state: { ...state, error: true, feedback: "cmdInvalidTargetFeedback" } };
+    }
     const parsed = parseGameCommand(state.draft);
     if (!parsed.success) return { state: { ...state, error: true, feedback: "cmdInvalidSyntaxFeedback" } };
     const command = parsed.data;
+    if (command === "use brick") {
+      return { state: { ...state, error: true, feedback: "cmdInvalidTargetFeedback" } };
+    }
     if (COMMAND_RULES[command] > 0) return { state: {
       phase: "TARGET", command, draft: "", feedback: "", error: false,
     } };
