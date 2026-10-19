@@ -172,6 +172,33 @@
   font-family: "Cascadia Code", Consolas, monospace;
   white-space: nowrap;
 }
+.hudBirdRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  max-width: 320px;
+}
+.hudSelf .hudBirdRow {
+  justify-content: flex-end;
+}
+.hudBirdIcon {
+  font-size: 0.95rem;
+}
+.hudBirdText {
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+.hudBirdReady {
+  color: #34d399;
+  text-shadow: 0 0 6px rgba(52, 211, 153, 0.5);
+}
+.hudBirdCooldown {
+  color: #facc15;
+}
 .hudBoostText {
   font-size: 0.75rem;
   font-weight: 600;
@@ -307,6 +334,53 @@
 .towerBoostReady {
   border-color: #facc15 !important;
   box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.5), 0 0 16px rgba(250, 204, 21, 0.35) !important;
+}
+.towerBirdStation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 3px 6px;
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  width: 100%;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+.birdStationReady {
+  border-color: #34d399;
+  background: rgba(52, 211, 153, 0.12);
+  box-shadow: 0 0 8px rgba(52, 211, 153, 0.25);
+}
+.birdStationCooldown {
+  border-color: rgba(148, 163, 184, 0.25);
+  background: rgba(15, 23, 42, 0.5);
+}
+.towerBirdWeapon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+.birdStationIcon {
+  font-size: 1.1rem;
+  display: inline-block;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+}
+.birdCountdownBadge {
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+.birdStationReady .birdCountdownBadge {
+  color: #34d399;
+  font-weight: 800;
+  text-shadow: 0 0 6px rgba(52, 211, 153, 0.7);
+}
+.birdStationCooldown .birdCountdownBadge {
+  color: #facc15;
 }
 .towerBazookaStation {
   display: flex;
@@ -642,6 +716,27 @@
 .waterCell { border-color: #0284c7; background: rgb(2 132 199 / 12%); }
 .clayCell { border-color: #f59e0b; background: rgb(245 158 11 / 12%); }
 .brickCell { border-color: #f97316; background: rgb(249 115 22 / 12%); }
+.cellHighlighted {
+  border-color: #facc15 !important;
+  box-shadow: 0 0 16px rgba(250, 204, 21, 0.8), inset 0 0 12px rgba(250, 204, 21, 0.35) !important;
+  animation: cellPulse 0.9s infinite alternate ease-in-out;
+}
+@keyframes cellPulse {
+  0% { transform: scale(0.97); }
+  100% { transform: scale(1.03); }
+}
+.badgeHighlighted {
+  border-color: #facc15 !important;
+  background: #facc15 !important;
+  color: #0f172a !important;
+  box-shadow: 0 0 16px rgba(250, 204, 21, 0.9) !important;
+  transform: translate(-50%, -50%) scale(1.25) !important;
+  animation: badgePulse 0.8s infinite alternate ease-in-out;
+}
+@keyframes badgePulse {
+  0% { transform: translate(-50%, -50%) scale(1.15); }
+  100% { transform: translate(-50%, -50%) scale(1.35); }
+}
 .cellId { position: absolute; top: 4px; left: 6px; font-size: .65rem; color: #64748b; }
 .objectName { font-size: .85rem; color: #f8fafc; font-weight: 700; margin-top: 2px; white-space: nowrap; }
 .hpText { font-size: .7rem; color: #34d399; font-weight: 600; white-space: nowrap; }

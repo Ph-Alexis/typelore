@@ -46,7 +46,7 @@ export function CommandHud() {
         { syntax: "protector <1–9>", desc: t("cmdProtectorDesc") },
         { syntax: "add water <1–9>", desc: t("cmdWaterDesc") },
         { syntax: "add clay <1–9>", desc: t("cmdClayDesc") },
-        { syntax: "use brick", desc: t("cmdBrickDesc") },
+        { syntax: "add brick <1–9>", desc: t("cmdBrickDesc") },
       ],
     },
     {

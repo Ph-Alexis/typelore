@@ -238,21 +238,21 @@ describe("Ground Combat - GameEngine Unit Tests", () => {
     const engine = new GameEngine();
     const { roomId, startId, p1, p2 } = setupGame(engine);
 
-    // Player 1 places Pistol at cell 7 (Row 1).
-    engine.executeCommand(roomId, p1, { requestId: randomUUID(), roomId, startId, command: "pistol", target: 7 });
-    engine.executeCommand(roomId, p1, { requestId: randomUUID(), roomId, startId, command: "load ammo", target: 7 });
+    // Player 1 places Pistol at cell 9 (Row 1).
+    engine.executeCommand(roomId, p1, { requestId: randomUUID(), roomId, startId, command: "pistol", target: 9 });
+    engine.executeCommand(roomId, p1, { requestId: randomUUID(), roomId, startId, command: "load ammo", target: 9 });
 
-    // Player 2 places Protector at cell 9 (Row 1 Front cell) and Pistol at cell 6 (Row 2).
-    engine.executeCommand(roomId, p2, { requestId: randomUUID(), roomId, startId, command: "protector", target: 9 });
+    // Player 2 places Protector at cell 7 (Row 1 Front cell) and Pistol at cell 6 (Row 2).
+    engine.executeCommand(roomId, p2, { requestId: randomUUID(), roomId, startId, command: "protector", target: 7 });
     engine.executeCommand(roomId, p2, { requestId: randomUUID(), roomId, startId, command: "pistol", target: 6 });
 
-    // Tick 1: P1 fires along Row 1. Bullet should hit P2 cell 9 (Protector), reducing HP from 30 to 25.
+    // Tick 1: P1 fires along Row 1. Bullet should hit P2 cell 7 (Protector), reducing HP from 30 to 25.
     const tick1 = engine.tick(roomId);
     expect(tick1.ok).toBe(true);
     if (tick1.ok) {
-      const p2Cell9 = tick1.state.players[1].grid.find((c) => c.id === 9)?.object;
+      const p2Cell7 = tick1.state.players[1].grid.find((c) => c.id === 7)?.object;
       const p2Cell6 = tick1.state.players[1].grid.find((c) => c.id === 6)?.object;
-      expect(p2Cell9?.hp).toBe(25);
+      expect(p2Cell7?.hp).toBe(25);
       expect(p2Cell6?.hp).toBe(15); // Cell 6 was not hit
       expect(tick1.state.players[1].castle.hp).toBe(CASTLE_HP); // Castle was not hit
     }
@@ -262,20 +262,20 @@ describe("Ground Combat - GameEngine Unit Tests", () => {
     const engine = new GameEngine();
     const { roomId, startId, p1, p2 } = setupGame(engine);
 
-    // P1 places Pistol at cell 7 (Row 1) and loads 10 ammo (2 reloads)
-    engine.executeCommand(roomId, p1, { requestId: randomUUID(), roomId, startId, command: "pistol", target: 7 });
-    engine.executeCommand(roomId, p1, { requestId: randomUUID(), roomId, startId, command: "load ammo", target: 7 });
-    engine.executeCommand(roomId, p1, { requestId: randomUUID(), roomId, startId, command: "load ammo", target: 7 });
+    // P1 places Pistol at cell 9 (Row 1) and loads 10 ammo (2 reloads)
+    engine.executeCommand(roomId, p1, { requestId: randomUUID(), roomId, startId, command: "pistol", target: 9 });
+    engine.executeCommand(roomId, p1, { requestId: randomUUID(), roomId, startId, command: "load ammo", target: 9 });
+    engine.executeCommand(roomId, p1, { requestId: randomUUID(), roomId, startId, command: "load ammo", target: 9 });
 
-    // P2 places Protector at cell 9 (Row 1 Front cell)
-    engine.executeCommand(roomId, p2, { requestId: randomUUID(), roomId, startId, command: "protector", target: 9 });
+    // P2 places Protector at cell 7 (Row 1 Front cell)
+    engine.executeCommand(roomId, p2, { requestId: randomUUID(), roomId, startId, command: "protector", target: 7 });
 
     // Shots 1 to 5: HP decreases by 5 each time
     const expectedHps = [25, 20, 15, 10, 5];
     for (const expectedHp of expectedHps) {
       const tick = engine.tick(roomId);
       if (tick.ok) {
-        const obj = tick.state.players[1].grid.find((c) => c.id === 9)?.object;
+        const obj = tick.state.players[1].grid.find((c) => c.id === 7)?.object;
         expect(obj?.hp).toBe(expectedHp);
       }
     }
@@ -284,12 +284,12 @@ describe("Ground Combat - GameEngine Unit Tests", () => {
     const tick6 = engine.tick(roomId);
     expect(tick6.ok).toBe(true);
     if (tick6.ok) {
-      const cell9 = tick6.state.players[1].grid.find((c) => c.id === 9);
-      expect(cell9?.object).toBeNull();
+      const cell7 = tick6.state.players[1].grid.find((c) => c.id === 7);
+      expect(cell7?.object).toBeNull();
       expect(tick6.state.players[1].castle.hp).toBe(CASTLE_HP); // Castle still undamaged
     }
 
-    // Shot 7: Cell 9 is gone; lane is empty, so bullet hits Castle!
+    // Shot 7: Cell 7 is gone; lane is empty, so bullet hits Castle!
     const tick7 = engine.tick(roomId);
     expect(tick7.ok).toBe(true);
     if (tick7.ok) {
@@ -353,25 +353,25 @@ describe("Ground Combat - GameEngine Unit Tests", () => {
     expect(getCellLane(3)).toBe(3);
   });
 
-  it("TC-GC-13: directional hit ordering - Player 1 shot hits front-most cell 9 before back cell 7 in Row 1", () => {
+  it("TC-GC-13: directional hit ordering - Player 1 shot hits front-most cell 7 before back cell 9 in Row 1", () => {
     const engine = new GameEngine();
     const { roomId, startId, p1, p2 } = setupGame(engine);
 
     // P1 fires along Row 1
-    engine.executeCommand(roomId, p1, { requestId: randomUUID(), roomId, startId, command: "pistol", target: 7 });
-    engine.executeCommand(roomId, p1, { requestId: randomUUID(), roomId, startId, command: "load ammo", target: 7 });
+    engine.executeCommand(roomId, p1, { requestId: randomUUID(), roomId, startId, command: "pistol", target: 8 });
+    engine.executeCommand(roomId, p1, { requestId: randomUUID(), roomId, startId, command: "load ammo", target: 8 });
 
-    // P2 has two obstacles on Row 1: Protector at front cell 9, Pistol at back cell 7
-    engine.executeCommand(roomId, p2, { requestId: randomUUID(), roomId, startId, command: "protector", target: 9 });
-    engine.executeCommand(roomId, p2, { requestId: randomUUID(), roomId, startId, command: "pistol", target: 7 });
+    // P2 has two obstacles on Row 1: Protector at front cell 7, Pistol at back cell 9
+    engine.executeCommand(roomId, p2, { requestId: randomUUID(), roomId, startId, command: "protector", target: 7 });
+    engine.executeCommand(roomId, p2, { requestId: randomUUID(), roomId, startId, command: "pistol", target: 9 });
 
     const tick = engine.tick(roomId);
     expect(tick.ok).toBe(true);
     if (tick.ok) {
-      const p2Cell9 = tick.state.players[1].grid.find((c) => c.id === 9)?.object;
       const p2Cell7 = tick.state.players[1].grid.find((c) => c.id === 7)?.object;
-      expect(p2Cell9?.hp).toBe(25); // Front cell absorbs damage
-      expect(p2Cell7?.hp).toBe(15); // Back cell remains untouched
+      const p2Cell9 = tick.state.players[1].grid.find((c) => c.id === 9)?.object;
+      expect(p2Cell7?.hp).toBe(25); // Front cell absorbs damage
+      expect(p2Cell9?.hp).toBe(15); // Back cell remains untouched
       expect(tick.state.players[1].castle.hp).toBe(CASTLE_HP);
     }
   });
@@ -381,8 +381,8 @@ describe("Ground Combat - GameEngine Unit Tests", () => {
     const { roomId, startId, p1, p2 } = setupGame(engine);
 
     // P2 fires along Row 1
-    engine.executeCommand(roomId, p2, { requestId: randomUUID(), roomId, startId, command: "pistol", target: 9 });
-    engine.executeCommand(roomId, p2, { requestId: randomUUID(), roomId, startId, command: "load ammo", target: 9 });
+    engine.executeCommand(roomId, p2, { requestId: randomUUID(), roomId, startId, command: "pistol", target: 8 });
+    engine.executeCommand(roomId, p2, { requestId: randomUUID(), roomId, startId, command: "load ammo", target: 8 });
 
     // P1 has two obstacles on Row 1: Protector at front cell 7, Pistol at back cell 9
     engine.executeCommand(roomId, p1, { requestId: randomUUID(), roomId, startId, command: "protector", target: 7 });
@@ -396,6 +396,129 @@ describe("Ground Combat - GameEngine Unit Tests", () => {
       expect(p1Cell7?.hp).toBe(25); // Front cell absorbs damage
       expect(p1Cell9?.hp).toBe(15); // Back cell remains untouched
       expect(tick.state.players[0].castle.hp).toBe(CASTLE_HP);
+    }
+  });
+
+  it("TC-GC-15: sequential destruction of all obstacles from closest to farthest before damaging Castle (P1 vs P2)", () => {
+    const engine = new GameEngine();
+    const { roomId, startId, p1, p2 } = setupGame(engine);
+
+    // P1 places Pistol at Row 1 (cell 8) and loads 10 ammo (2 reloads)
+    engine.executeCommand(roomId, p1, { requestId: randomUUID(), roomId, startId, command: "pistol", target: 8 });
+    engine.executeCommand(roomId, p1, { requestId: randomUUID(), roomId, startId, command: "load ammo", target: 8 });
+    engine.executeCommand(roomId, p1, { requestId: randomUUID(), roomId, startId, command: "load ammo", target: 8 });
+
+    // P2 places 3 obstacles along Row 1:
+    // Front: Water (5 HP) at cell 7
+    // Middle: Clay (10 HP) at cell 8
+    // Back: Brick (15 HP) at cell 9 (via add water + add clay)
+    engine.executeCommand(roomId, p2, { requestId: randomUUID(), roomId, startId, command: "add water", target: 7 });
+    engine.executeCommand(roomId, p2, { requestId: randomUUID(), roomId, startId, command: "add clay", target: 8 });
+    engine.executeCommand(roomId, p2, { requestId: randomUUID(), roomId, startId, command: "add water", target: 9 });
+    engine.executeCommand(roomId, p2, { requestId: randomUUID(), roomId, startId, command: "add clay", target: 9 }); // Crafts Brick (15 HP)
+
+    // Shot 1: hits front cell 7 (Water 5 HP -> destroyed). Cell 8 (10 HP), Cell 9 (15 HP), Castle undamaged (200 HP).
+    const tick1 = engine.tick(roomId);
+    expect(tick1.ok).toBe(true);
+    if (tick1.ok) {
+      expect(tick1.state.players[1].grid.find((c) => c.id === 7)?.object).toBeNull();
+      expect(tick1.state.players[1].grid.find((c) => c.id === 8)?.object?.hp).toBe(10);
+      expect(tick1.state.players[1].grid.find((c) => c.id === 9)?.object?.hp).toBe(15);
+      expect(tick1.state.players[1].castle.hp).toBe(CASTLE_HP);
+    }
+
+    // Shot 2: hits middle cell 8 (Clay 10 HP -> 5 HP). Cell 9 (15 HP), Castle undamaged (200 HP).
+    const tick2 = engine.tick(roomId);
+    expect(tick2.ok).toBe(true);
+    if (tick2.ok) {
+      expect(tick2.state.players[1].grid.find((c) => c.id === 8)?.object?.hp).toBe(5);
+      expect(tick2.state.players[1].grid.find((c) => c.id === 9)?.object?.hp).toBe(15);
+      expect(tick2.state.players[1].castle.hp).toBe(CASTLE_HP);
+    }
+
+    // Shot 3: hits middle cell 8 (Clay 5 HP -> destroyed). Cell 9 (15 HP), Castle undamaged (200 HP).
+    const tick3 = engine.tick(roomId);
+    expect(tick3.ok).toBe(true);
+    if (tick3.ok) {
+      expect(tick3.state.players[1].grid.find((c) => c.id === 8)?.object).toBeNull();
+      expect(tick3.state.players[1].grid.find((c) => c.id === 9)?.object?.hp).toBe(15);
+      expect(tick3.state.players[1].castle.hp).toBe(CASTLE_HP);
+    }
+
+    // Shot 4: hits back cell 9 (Brick 15 HP -> 10 HP). Castle undamaged (200 HP).
+    const tick4 = engine.tick(roomId);
+    expect(tick4.ok).toBe(true);
+    if (tick4.ok) {
+      expect(tick4.state.players[1].grid.find((c) => c.id === 9)?.object?.hp).toBe(10);
+      expect(tick4.state.players[1].castle.hp).toBe(CASTLE_HP);
+    }
+
+    // Shot 5: hits back cell 9 (Brick 10 HP -> 5 HP). Castle undamaged (200 HP).
+    const tick5 = engine.tick(roomId);
+    expect(tick5.ok).toBe(true);
+    if (tick5.ok) {
+      expect(tick5.state.players[1].grid.find((c) => c.id === 9)?.object?.hp).toBe(5);
+      expect(tick5.state.players[1].castle.hp).toBe(CASTLE_HP);
+    }
+
+    // Shot 6: hits back cell 9 (Brick 5 HP -> destroyed). Castle undamaged (200 HP).
+    const tick6 = engine.tick(roomId);
+    expect(tick6.ok).toBe(true);
+    if (tick6.ok) {
+      expect(tick6.state.players[1].grid.find((c) => c.id === 9)?.object).toBeNull();
+      expect(tick6.state.players[1].castle.hp).toBe(CASTLE_HP);
+    }
+
+    // Shot 7: ALL obstacles on Row 1 are destroyed -> hits Castle directly (200 -> 195 HP)!
+    const tick7 = engine.tick(roomId);
+    expect(tick7.ok).toBe(true);
+    if (tick7.ok) {
+      expect(tick7.state.players[1].castle.hp).toBe(CASTLE_HP - 5);
+    }
+  });
+
+  it("TC-GC-16: symmetric sequential destruction of all obstacles on Row 2 (P2 vs P1)", () => {
+    const engine = new GameEngine();
+    const { roomId, startId, p1, p2 } = setupGame(engine);
+
+    // P2 places Pistol at Row 2 (cell 5) with 10 ammo
+    engine.executeCommand(roomId, p2, { requestId: randomUUID(), roomId, startId, command: "pistol", target: 5 });
+    engine.executeCommand(roomId, p2, { requestId: randomUUID(), roomId, startId, command: "load ammo", target: 5 });
+    engine.executeCommand(roomId, p2, { requestId: randomUUID(), roomId, startId, command: "load ammo", target: 5 });
+
+    // P1 places obstacles on Row 2:
+    // Front: Water (5 HP) at cell 4
+    // Back: Protector (30 HP) at cell 6
+    engine.executeCommand(roomId, p1, { requestId: randomUUID(), roomId, startId, command: "add water", target: 4 });
+    engine.executeCommand(roomId, p1, { requestId: randomUUID(), roomId, startId, command: "protector", target: 6 });
+
+    // Shot 1: hits front cell 4 (Water destroyed). Protector at cell 6 untouched. Castle untouched.
+    const tick1 = engine.tick(roomId);
+    expect(tick1.ok).toBe(true);
+    if (tick1.ok) {
+      expect(tick1.state.players[0].grid.find((c) => c.id === 4)?.object).toBeNull();
+      expect(tick1.state.players[0].grid.find((c) => c.id === 6)?.object?.hp).toBe(30);
+      expect(tick1.state.players[0].castle.hp).toBe(CASTLE_HP);
+    }
+
+    // Shots 2-7 (6 hits): hits Protector at cell 6 (30 HP -> destroyed). Castle untouched.
+    for (let hit = 1; hit <= 6; hit++) {
+      const tick = engine.tick(roomId);
+      expect(tick.ok).toBe(true);
+      if (tick.ok && hit < 6) {
+        expect(tick.state.players[0].grid.find((c) => c.id === 6)?.object?.hp).toBe(30 - hit * 5);
+        expect(tick.state.players[0].castle.hp).toBe(CASTLE_HP);
+      } else if (tick.ok && hit === 6) {
+        expect(tick.state.players[0].grid.find((c) => c.id === 6)?.object).toBeNull();
+        expect(tick.state.players[0].castle.hp).toBe(CASTLE_HP);
+      }
+    }
+
+    // Shot 8: all obstacles on Row 2 are now destroyed -> damages Player 1's Castle!
+    const tick8 = engine.tick(roomId);
+    expect(tick8.ok).toBe(true);
+    if (tick8.ok) {
+      expect(tick8.state.players[0].castle.hp).toBe(CASTLE_HP - 5);
     }
   });
 });

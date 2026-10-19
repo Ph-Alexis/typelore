@@ -20,6 +20,7 @@ import {
   BIRD_DAMAGE,
   BIRD_FLIGHT_TIME_MS,
   BIRD_COOLDOWN_MS,
+  BIRD_WORD_LENGTH,
   ARROW_DAMAGE,
   BIRD_FLIGHT_TICKS,
   getTargetRowCells,
@@ -73,7 +74,7 @@ export function getCellRow(cellId: number): 1 | 2 | 3 {
 export const getCellLane = getCellRow;
 export const OPPONENT_LANE_CELLS = COMBAT_ROWS;
 
-export function generateBirdChallengeWord(len = 15): string {
+export function generateBirdChallengeWord(len = BIRD_WORD_LENGTH): string {
   const chars = "abcdefghijklmnopqrstuvwxyz";
   let word = "";
   for (let i = 0; i < len; i++) {
@@ -348,7 +349,7 @@ export class GameEngine {
         createdAt: now,
         flightDurationMs: BIRD_FLIGHT_TIME_MS,
         ticksRemaining: BIRD_FLIGHT_TICKS,
-        word: generateBirdChallengeWord(15),
+        word: generateBirdChallengeWord(BIRD_WORD_LENGTH),
       };
       player.birds.push(newBird);
       player.birdCooldownUntil = now + BIRD_COOLDOWN_MS;

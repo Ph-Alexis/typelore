@@ -105,36 +105,21 @@ export function useCommandInput(
       (result) => {
         if (!active.current) return;
         if ("error" in result) {
-          if (intent.target !== undefined) {
-            const targetStr = String(intent.target);
-            update({
-              phase: "TARGET",
-              command: intent.command,
-              draft: targetStr,
-              feedback: result.error,
-              error: true,
-            });
-            const element = input.current;
-            if (element) {
-              element.value = targetStr;
-              if (caretTask.current !== undefined) cancelAnimationFrame(caretTask.current);
-              caretTask.current = requestAnimationFrame(() => element.select());
-            }
-            return;
-          }
+          const fullDraft =
+            intent.target !== undefined ? `${intent.command} ${intent.target}` : intent.command;
           update({
             phase: "COMMAND",
             command: null,
-            draft: intent.command,
+            draft: fullDraft,
             feedback: result.error,
             error: true,
           });
           const element = input.current;
           if (element) {
-            element.value = intent.command;
+            element.value = fullDraft;
             if (caretTask.current !== undefined) cancelAnimationFrame(caretTask.current);
             caretTask.current = requestAnimationFrame(() =>
-              element.setSelectionRange(intent.command.length, intent.command.length),
+              element.setSelectionRange(fullDraft.length, fullDraft.length),
             );
           }
           return;
@@ -195,8 +180,9 @@ export function useCommandInput(
         if (nextChar === expectedChar) {
           const nextTyped = currentTyped + nextChar;
           sound.playTyping();
-          // Every 5 characters (5, 10, 15), fire arrow
-          if (nextTyped.length === 5 || nextTyped.length === 10 || nextTyped.length === 15) {
+          // Fire arrow every 4 characters (4, 8, 12) for 12-char word (3 arrows deal 15 HP damage)
+          const arrowInterval = Math.max(1, Math.floor(targetWord.length / 3));
+          if (nextTyped.length % arrowInterval === 0 || nextTyped.length === targetWord.length) {
             sound.playArrow();
             const arrowIntent: CommandIntent = {
               command: "arrow",
@@ -231,10 +217,25 @@ export function useCommandInput(
       element.selectionStart ?? old.draft.length,
       element.selectionEnd ?? old.draft.length,
       operation,
-      old.phase === "TARGET" ? 16 : 64,
+      64,
     );
 
     // 3. Auto-submit without Enter key upon exact syntax match
+    // Check full ground command first regardless of phase (e.g. user typed "pistol 4" or "protector 2" or "boost")
+    const match = matchGroundCommand(result.draft);
+    if (match) {
+      update({ phase: "COMMAND", command: null, draft: result.draft, feedback: "", error: false });
+      const intent: CommandIntent = {
+        ...match,
+        roomId,
+        startId,
+        requestId: generateUUID(),
+      } as CommandIntent;
+      submitIntent(intent);
+      return;
+    }
+
+    // If in TARGET phase and user typed target position (e.g. "4", "A")
     if (old.phase === "TARGET" && old.command) {
       const target = parseCommandTarget(old.command, result.draft);
       if (target !== null) {
@@ -242,19 +243,6 @@ export function useCommandInput(
         const intent: CommandIntent = {
           command: old.command,
           target,
-          roomId,
-          startId,
-          requestId: generateUUID(),
-        } as CommandIntent;
-        submitIntent(intent);
-        return;
-      }
-    } else {
-      const match = matchGroundCommand(result.draft);
-      if (match) {
-        update({ ...old, draft: result.draft, feedback: "", error: false });
-        const intent: CommandIntent = {
-          ...match,
           roomId,
           startId,
           requestId: generateUUID(),

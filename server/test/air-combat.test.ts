@@ -117,7 +117,7 @@ describe("Air Combat - GameEngine Unit Tests", () => {
     expect(snap?.players[0].birds).toHaveLength(1);
   });
 
-  it("TC-AC-04: allows 'bird and bomb' once 20s cooldown expires", () => {
+  it("TC-AC-04: allows 'bird and bomb' once 60s cooldown expires", () => {
     const engine = new GameEngine();
     const { roomId, startId, p1 } = setupGame(engine);
     const launchTime = 10000;
@@ -324,12 +324,12 @@ describe("Air Combat - GameEngine Unit Tests", () => {
       engine.tick(roomId);
     }
 
-    // P1 launches Bird #2 at t=20000 (after cooldown): Bird #2 has ticksRemaining = 10
+    // P1 launches Bird #2 at t=BIRD_COOLDOWN_MS (after cooldown): Bird #2 has ticksRemaining = 10
     engine.executeCommand(
       roomId,
       p1,
       { requestId: randomUUID(), roomId, startId, command: "bird and bomb" },
-      20000,
+      BIRD_COOLDOWN_MS,
     );
 
     const snapBefore = engine.getSnapshot(roomId);
@@ -428,25 +428,25 @@ describe("Air Combat - GameEngine Unit Tests", () => {
       createdAt: 1000,
       flightDurationMs: 10000,
       ticksRemaining: 10,
-      word: "abcdefghijklmno",
+      word: "abcdefghijkl",
     };
 
-    // Valid 15 lowercase characters
+    // Valid 12 lowercase characters
     expect(BirdStateSchema.safeParse(validBase).success).toBe(true);
 
-    // Rejects too short (14 chars)
-    expect(BirdStateSchema.safeParse({ ...validBase, word: "abcdefghijklmn" }).success).toBe(false);
+    // Rejects too short (11 chars)
+    expect(BirdStateSchema.safeParse({ ...validBase, word: "abcdefghijk" }).success).toBe(false);
 
-    // Rejects too long (16 chars)
-    expect(BirdStateSchema.safeParse({ ...validBase, word: "abcdefghijklmnop" }).success).toBe(false);
+    // Rejects too long (13 chars)
+    expect(BirdStateSchema.safeParse({ ...validBase, word: "abcdefghijklm" }).success).toBe(false);
 
     // Rejects uppercase characters
-    expect(BirdStateSchema.safeParse({ ...validBase, word: "ABCDEFGHIJKLMNO" }).success).toBe(false);
+    expect(BirdStateSchema.safeParse({ ...validBase, word: "ABCDEFGHIJKL" }).success).toBe(false);
 
     // Rejects non-ASCII / numbers
-    expect(BirdStateSchema.safeParse({ ...validBase, word: "abcdefghijklmn1" }).success).toBe(false);
+    expect(BirdStateSchema.safeParse({ ...validBase, word: "abcdefghijk1" }).success).toBe(false);
 
-    // Default missing word provides valid 15-character string
+    // Default missing word provides valid 12-character string
     const parsedDefault = BirdStateSchema.parse({
       id: randomUUID(),
       hp: 15,
@@ -455,8 +455,8 @@ describe("Air Combat - GameEngine Unit Tests", () => {
       flightDurationMs: 10000,
       ticksRemaining: 10,
     });
-    expect(parsedDefault.word).toHaveLength(15);
-    expect(/^[a-z]{15}$/.test(parsedDefault.word)).toBe(true);
+    expect(parsedDefault.word).toHaveLength(12);
+    expect(/^[a-z]{12}$/.test(parsedDefault.word)).toBe(true);
   });
 
   it("TC-AC-14: GameEngine generated bird challenge words conform to schema", () => {
@@ -469,14 +469,14 @@ describe("Air Combat - GameEngine Unit Tests", () => {
         roomId,
         startId,
         command: "bird and bomb",
-      }, 1000 + i * 30000);
+      }, 1000 + i * 70000);
 
       expect(res.ok).toBe(true);
       if (res.ok) {
         const bird = res.state.players[0].birds[res.state.players[0].birds.length - 1];
         expect(bird).toBeDefined();
         if (bird) {
-          expect(bird.word).toHaveLength(15);
+          expect(bird.word).toHaveLength(12);
           expect(BirdStateSchema.safeParse(bird).success).toBe(true);
         }
       }

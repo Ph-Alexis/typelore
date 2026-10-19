@@ -4,7 +4,12 @@
   padding-top: 16px;
   overflow-wrap: anywhere;
 }
-.lobby:has([aria-label="Battlefield"]) {
+.lobby:has([aria-label="Battlefield"]),
+.lobby:has([data-screen="battlefield"]),
+.lobby:has([data-screen="tutorial"]),
+.lobby[data-screen="tutorial"],
+.lobby:has([aria-label="Tutorial Guide"]),
+.lobby:has([aria-label="Tutorial Battlefield"]) {
   margin-top: 0;
   border-top: none;
   padding-top: 0;
@@ -15,7 +20,10 @@
   flex-direction: column;
   overflow: hidden;
 }
-.lobby:has([aria-label="Battlefield"]) > p:empty {
+.lobby:has([aria-label="Battlefield"]) > p:empty,
+.lobby:has([data-screen="battlefield"]) > p:empty,
+.lobby:has([data-screen="tutorial"]) > p:empty,
+.lobby[data-screen="tutorial"] > p:empty {
   display: none;
 }
 .stack { display: grid; gap: 12px; }
@@ -37,6 +45,21 @@
 .lobby button:disabled { opacity: 0.55; cursor: not-allowed; }
 .lobby button:focus-visible, .lobby input:focus-visible { outline: 2px solid #7dd3fc; outline-offset: 3px; }
 .lobby .primary { background: #075985; }
+.lobby .tutorialBtn {
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+  border-color: #818cf8;
+  color: #e0e7ff;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+  transition: all 0.2s ease;
+}
+.lobby .tutorialBtn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #312e81 0%, #3730a3 100%);
+  border-color: #a5b4fc;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+}
 .lobby .ready { background: #065f46; border-color: #34d399; }
 .lobby .error { color: #fda4af; }
 .codeRow { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
