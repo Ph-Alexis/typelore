@@ -529,10 +529,10 @@ export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
       return;
     }
 
-    // Step 11 (B12: bird and bomb) -> player launches bird, inflicts 20 dmg to bot castle, triggers 60s cooldown
+    // Step 11 (B12: bird and bomb) -> player launches bird, inflicts 20 dmg to bot castle, triggers 90s cooldown
     if (stepIndex === 11 && cmd === "bird and bomb") {
       sound.playBirdSpawn();
-      setPlayerBirdCooldown(Date.now() + 60000);
+      setPlayerBirdCooldown(Date.now() + 90000);
       const birdId = generateUUID();
       const newBird: BirdState = {
         id: birdId,
@@ -839,7 +839,7 @@ export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
               </div>
               <div className={bStyles.hudBirdRow}>
                 <span className={`${bStyles.hudBirdText} ${playerBirdCooldown > now ? bStyles.hudBirdCooldown : bStyles.hudBirdReady}`}>
-                  BIRD {playerBirdCooldown > now ? "COOLDOWN (60s)" : "READY"}
+                  BIRD {playerBirdCooldown > now ? `${Math.max(0, Math.ceil((playerBirdCooldown - now) / 1000))}s` : "READY"}
                 </span>
                 <span className={bStyles.hudBirdIcon} aria-hidden="true">🦅</span>
               </div>
