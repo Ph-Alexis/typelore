@@ -277,6 +277,7 @@
   flex: 1;
   min-height: 0;
   justify-content: center;
+  overflow: hidden;
 }
 .arenaStage {
   display: grid;
@@ -758,8 +759,14 @@
   animation: cellPulse 0.9s infinite alternate ease-in-out;
 }
 @keyframes cellPulse {
-  0% { transform: scale(0.97); }
-  100% { transform: scale(1.03); }
+  0% {
+    box-shadow: 0 0 10px rgba(250, 204, 21, 0.6), inset 0 0 8px rgba(250, 204, 21, 0.25) !important;
+    filter: brightness(1);
+  }
+  100% {
+    box-shadow: 0 0 22px rgba(250, 204, 21, 0.95), inset 0 0 14px rgba(250, 204, 21, 0.45) !important;
+    filter: brightness(1.2);
+  }
 }
 .badgeHighlighted {
   border-color: #facc15 !important;
@@ -772,6 +779,41 @@
 @keyframes badgePulse {
   0% { transform: translate(-50%, -50%) scale(1.15); }
   100% { transform: translate(-50%, -50%) scale(1.35); }
+}
+
+.towerHighlighted {
+  border-color: #facc15 !important;
+  box-shadow: 0 0 25px rgba(250, 204, 21, 0.75), inset 0 0 15px rgba(250, 204, 21, 0.3) !important;
+  animation: towerPulse 1s infinite alternate ease-in-out;
+  z-index: 15 !important;
+}
+
+@keyframes towerPulse {
+  0% { transform: scale(1); filter: brightness(1); }
+  100% { transform: scale(1.02); filter: brightness(1.25); }
+}
+
+.birdStationHighlighted {
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.9), inset 0 0 10px rgba(56, 189, 248, 0.4) !important;
+  animation: birdStationPulse 0.8s infinite alternate ease-in-out;
+}
+
+@keyframes birdStationPulse {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.08); }
+}
+
+.corridorHighlighted {
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 24px rgba(56, 189, 248, 0.6), inset 0 0 20px rgba(56, 189, 248, 0.25) !important;
+  animation: corridorPulse 1s infinite alternate ease-in-out;
+  z-index: 15 !important;
+}
+
+@keyframes corridorPulse {
+  0% { opacity: 0.85; }
+  100% { opacity: 1; filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.8)); }
 }
 .cellId { position: absolute; top: 4px; left: 6px; font-size: .65rem; color: #64748b; }
 .objectName { font-size: .85rem; color: #f8fafc; font-weight: 700; margin-top: 2px; white-space: nowrap; }

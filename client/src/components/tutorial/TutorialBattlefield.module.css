@@ -425,4 +425,263 @@
   box-shadow: 0 2px 8px rgba(59, 130, 246, 0.5);
 }
 
+/* Spotlight Cutout Frame around highlighted element (NO dimming and NO blur on the target) */
+.spotlightCutout {
+  position: absolute;
+  border-radius: 10px;
+  border: 2.5px solid #facc15;
+  box-shadow:
+    0 0 18px rgba(250, 204, 21, 0.9),
+    inset 0 0 10px rgba(250, 204, 21, 0.35),
+    0 0 0 9999px rgba(3, 7, 18, 0.68);
+  pointer-events: none;
+  z-index: 15;
+  animation: spotlightPulse 1.2s infinite alternate ease-in-out;
+  box-sizing: border-box;
+  transition: opacity 0.2s ease;
+}
+
+@keyframes spotlightPulse {
+  0% {
+    border-color: #facc15;
+    box-shadow:
+      0 0 12px rgba(250, 204, 21, 0.75),
+      inset 0 0 6px rgba(250, 204, 21, 0.2),
+      0 0 0 9999px rgba(3, 7, 18, 0.68);
+  }
+  100% {
+    border-color: #fde047;
+    box-shadow:
+      0 0 26px rgba(250, 204, 21, 1),
+      inset 0 0 14px rgba(250, 204, 21, 0.45),
+      0 0 0 9999px rgba(3, 7, 18, 0.68);
+  }
+}
+
+/* Tooltip Callout Popup */
+.tutorialTooltip {
+  position: absolute;
+  width: 340px;
+  max-width: calc(100% - 24px);
+  max-height: calc(100% - 20px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: linear-gradient(160deg, rgba(15, 23, 42, 0.98) 0%, rgba(10, 15, 30, 0.98) 100%);
+  border: 2px solid #38bdf8;
+  border-radius: 12px;
+  padding: 10px 14px;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.8), 0 0 20px rgba(56, 189, 248, 0.4);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: tooltipAppear 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+  backdrop-filter: blur(8px);
+}
+
+@keyframes tooltipAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Tooltip Arrow */
+.tooltipArrow {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Tooltip placed to the LEFT of target -> Arrow points RIGHT */
+.tooltip_left .tooltipArrow {
+  top: 50%;
+  right: -12px;
+  transform: translateY(-50%);
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-left: 12px solid #38bdf8;
+  filter: drop-shadow(4px 0 4px rgba(56, 189, 248, 0.5));
+}
+
+/* Tooltip placed to the RIGHT of target -> Arrow points LEFT */
+.tooltip_right .tooltipArrow {
+  top: 50%;
+  left: -12px;
+  transform: translateY(-50%);
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-right: 12px solid #38bdf8;
+  filter: drop-shadow(-4px 0 4px rgba(56, 189, 248, 0.5));
+}
+
+/* Tooltip placed BELOW target -> Arrow points UP */
+.tooltip_bottom .tooltipArrow {
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 12px solid #38bdf8;
+  filter: drop-shadow(0 -4px 4px rgba(56, 189, 248, 0.5));
+}
+
+/* Tooltip placed ABOVE target -> Arrow points DOWN */
+.tooltip_top .tooltipArrow {
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 12px solid #38bdf8;
+  filter: drop-shadow(0 4px 4px rgba(56, 189, 248, 0.5));
+}
+
+/* Tooltip Inner Elements */
+.tooltipHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+  padding-bottom: 6px;
+}
+
+.tooltipStepBadge {
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #facc15;
+  background: rgba(250, 204, 21, 0.15);
+  border: 1px solid rgba(250, 204, 21, 0.35);
+  padding: 2px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.tooltipTitle {
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #38bdf8;
+  margin: 0;
+  line-height: 1.25;
+}
+
+.tooltipDesc {
+  font-size: 0.78rem;
+  line-height: 1.36;
+  color: #e2e8f0;
+  margin: 0;
+}
+
+.tooltipActionBadge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px dashed rgba(56, 189, 248, 0.4);
+  border-radius: 8px;
+  padding: 4px 8px;
+}
+
+.tooltipActionLabel {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  font-weight: 700;
+}
+
+.tooltipActionValue {
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #facc15;
+  letter-spacing: 0.05em;
+}
+
+.tooltipConfirmBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  border: 1.5px solid #38bdf8;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 7px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4), 0 0 10px rgba(56, 189, 248, 0.2);
+  transition: all 0.2s ease;
+  outline: none;
+  animation: pulseButton 1.5s infinite alternate ease-in-out;
+  flex-shrink: 0;
+}
+
+@keyframes pulseButton {
+  0% { transform: scale(1); box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4); }
+  100% { transform: scale(1.02); box-shadow: 0 6px 18px rgba(56, 189, 248, 0.6); }
+}
+
+.tooltipConfirmBtn:hover, .tooltipConfirmBtn:focus-visible {
+  background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+  box-shadow: 0 6px 20px rgba(56, 189, 248, 0.7);
+  transform: translateY(-1px);
+}
+
+.enterKeyBadge {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #facc15;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
+}
+
+.btnArrow {
+  font-size: 0.9rem;
+  transition: transform 0.2s ease;
+}
+
+.tooltipConfirmBtn:hover .btnArrow {
+  transform: translateX(3px);
+}
+
+.reviewGuideBtn {
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.reviewGuideBtn:hover {
+  background: rgba(56, 189, 248, 0.25);
+  border-color: #38bdf8;
+  color: #f0f9ff;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+}
+
+
 

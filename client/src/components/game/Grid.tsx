@@ -40,7 +40,14 @@ export function Grid({
       {order.map((id) => {
         const cell = cells.find((candidate) => candidate.id === id);
         const isHighlighted = highlightCellId === id || (areaCells ? (areaCells as readonly number[]).includes(id) : false);
-        return cell ? <GridCell key={id} cell={cell} highlighted={isHighlighted} /> : null;
+        return cell ? (
+          <GridCell
+            key={id}
+            cell={cell}
+            highlighted={isHighlighted}
+            isOpponent={Boolean(opponent)}
+          />
+        ) : null;
       })}
       {badges.map((badge) => (
         <span
