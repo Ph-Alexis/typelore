@@ -85,7 +85,7 @@ export const translations = {
     cmdErrNoBrickAvailable: "Không có Brick trên sân để hồi máu Castle.",
     cmdErrBoostNotReady: "Bazooka đang hồi chiêu (1 phút từ lúc bắn).",
     cmdErrBazookaOnCooldown: "Bazooka đang hồi chiêu (1 phút từ lúc bắn).",
-    cmdErrBirdOnCooldown: "Bird đang hồi chiêu (20 giây từ lúc thả).",
+    cmdErrBirdOnCooldown: "Bird đang hồi chiêu (90 giây).",
     cmdErrNoAirTarget: "Không có Bird đối thủ trên không để bắn tên.",
     cmdErrTimeout: "Chưa nhận xác nhận; vui lòng nhập lại.",
     cmdErrSendFailed: "Không gửi được lệnh. Vui lòng nhập lại.",
@@ -150,7 +150,7 @@ export const translations = {
     cmdBrickDesc: "Dùng gạch hồi +25 HP Castle",
     cmdBoostDesc: "Tích 1 nấc Bazooka (cần 10 nấc)",
     cmdBazookaDesc: "Bắn nổ lan 4 ô (Khu A-D, sát thương 10, hồi chiêu 1 phút)",
-    cmdBirdDesc: "Thả chim ném bom Castle (-20 HP)",
+    cmdBirdDesc: "Thả chim ném bom Castle (-20 HP, hồi chiêu 90s)",
     cmdArrowDesc: "Gõ chữ cái trên chim để bắn hạ",
 
     // Game Over & Stats & Rematch
@@ -303,7 +303,7 @@ export const translations = {
     cmdErrNoBrickAvailable: "No Brick available on grid to repair Castle.",
     cmdErrBoostNotReady: "Bazooka is on cooldown (1 minute from launch).",
     cmdErrBazookaOnCooldown: "Bazooka is on cooldown (1 minute from launch).",
-    cmdErrBirdOnCooldown: "Bird is on cooldown (20 seconds from launch).",
+    cmdErrBirdOnCooldown: "Bird is on cooldown (90 seconds).",
     cmdErrNoAirTarget: "No enemy bird airborne to shoot down.",
     cmdErrTimeout: "Confirmation timed out; please re-enter command.",
     cmdErrSendFailed: "Failed to send command. Please re-enter.",
@@ -368,7 +368,7 @@ export const translations = {
     cmdBrickDesc: "Use brick to heal +25 Castle HP",
     cmdBoostDesc: "Charge 1 Bazooka boost (needs 10)",
     cmdBazookaDesc: "AOE strike 4 cells (Area A-D, 10 damage, 1m cooldown)",
-    cmdBirdDesc: "Launch bird bomb at Castle (-20 HP)",
+    cmdBirdDesc: "Launch bird bomb at Castle (-20 HP, 90s cooldown)",
     cmdArrowDesc: "Type letters on bird to shoot down",
 
     // Game Over & Stats & Rematch

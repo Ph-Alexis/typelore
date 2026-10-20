@@ -85,6 +85,7 @@ export function generateBirdChallengeWord(len = BIRD_WORD_LENGTH): string {
 
 export function createInitialGameState(start: GameStart): GameState {
   GameStartSchema.parse(start);
+  const startTime = start.serverTime;
   return GameStateSchema.parse({
     roomId: start.room.roomId,
     startId: start.startId,
@@ -95,9 +96,9 @@ export function createInitialGameState(start: GameStart): GameState {
       slot: player.slot,
       connectionId: player.connectionId,
       castle: { hp: CASTLE_HP, maxHp: CASTLE_HP },
-      bazookaCooldownUntil: 0,
+      bazookaCooldownUntil: startTime + BAZOOKA_COOLDOWN_MS,
       bazookaBoost: 0,
-      birdCooldownUntil: 0,
+      birdCooldownUntil: startTime + BIRD_COOLDOWN_MS,
       birds: [],
       grid: GRID_CELL_IDS.map((id) => ({ id, object: null })),
     })),

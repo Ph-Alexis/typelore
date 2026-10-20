@@ -46,7 +46,7 @@ function setupGame(engine: GameEngine): {
 }
 
 describe("Air Combat - GameEngine Unit Tests", () => {
-  it("TC-AC-01: initializes two players with birdCooldownUntil = 0 and empty birds array", () => {
+  it("TC-AC-01: initializes two players with birdCooldownUntil = serverTime + BIRD_COOLDOWN_MS and empty birds array", () => {
     const engine = new GameEngine();
     const { roomId, p1, p2 } = setupGame(engine);
     const snap = engine.getSnapshot(roomId);
@@ -54,16 +54,16 @@ describe("Air Combat - GameEngine Unit Tests", () => {
     const player1 = snap?.players.find((p) => p.connectionId === p1);
     const player2 = snap?.players.find((p) => p.connectionId === p2);
 
-    expect(player1?.birdCooldownUntil).toBe(0);
+    expect(player1?.birdCooldownUntil).toBe(1000 + BIRD_COOLDOWN_MS);
     expect(player1?.birds).toEqual([]);
-    expect(player2?.birdCooldownUntil).toBe(0);
+    expect(player2?.birdCooldownUntil).toBe(1000 + BIRD_COOLDOWN_MS);
     expect(player2?.birds).toEqual([]);
   });
 
-  it("TC-AC-02: 'bird and bomb' creates Bird with 15 HP, 10s flight, 10 ticksRemaining and sets 20s cooldown", () => {
+  it("TC-AC-02: 'bird and bomb' creates Bird with 15 HP, 10s flight, 10 ticksRemaining and sets 90s cooldown", () => {
     const engine = new GameEngine();
     const { roomId, startId, p1 } = setupGame(engine);
-    const launchTime = 10000;
+    const launchTime = 100000;
 
     const res = engine.executeCommand(
       roomId,
@@ -92,7 +92,7 @@ describe("Air Combat - GameEngine Unit Tests", () => {
   it("TC-AC-03: rejects 'bird and bomb' with BIRD_ON_COOLDOWN when cooldown is active", () => {
     const engine = new GameEngine();
     const { roomId, startId, p1 } = setupGame(engine);
-    const launchTime = 10000;
+    const launchTime = 100000;
 
     // Launch #1
     engine.executeCommand(
@@ -102,7 +102,7 @@ describe("Air Combat - GameEngine Unit Tests", () => {
       launchTime,
     );
 
-    // Launch #2 attempt at 15s (only 5s after #1, cooldown is 20s)
+    // Launch #2 attempt at 105s (only 5s after #1, cooldown is 90s)
     const reject = engine.executeCommand(
       roomId,
       p1,
@@ -117,10 +117,25 @@ describe("Air Combat - GameEngine Unit Tests", () => {
     expect(snap?.players[0].birds).toHaveLength(1);
   });
 
-  it("TC-AC-04: allows 'bird and bomb' once 60s cooldown expires", () => {
+  it("TC-AC-03b: rejects 'bird and bomb' at match start when initial 90s cooldown is active", () => {
     const engine = new GameEngine();
     const { roomId, startId, p1 } = setupGame(engine);
-    const launchTime = 10000;
+
+    // Attempt to launch bird immediately at match start (t=1000, initial cooldown until 91000)
+    const reject = engine.executeCommand(
+      roomId,
+      p1,
+      { requestId: randomUUID(), roomId, startId, command: "bird and bomb" },
+      1000,
+    );
+
+    expect(reject).toEqual({ ok: false, code: "BIRD_ON_COOLDOWN" });
+  });
+
+  it("TC-AC-04: allows 'bird and bomb' once 90s cooldown expires", () => {
+    const engine = new GameEngine();
+    const { roomId, startId, p1 } = setupGame(engine);
+    const launchTime = 100000;
 
     // Launch #1
     engine.executeCommand(
@@ -130,7 +145,7 @@ describe("Air Combat - GameEngine Unit Tests", () => {
       launchTime,
     );
 
-    // Launch #2 at exactly 20s later
+    // Launch #2 at exactly 90s later
     const secondLaunch = engine.executeCommand(
       roomId,
       p1,
@@ -155,7 +170,7 @@ describe("Air Combat - GameEngine Unit Tests", () => {
       roomId,
       p1,
       { requestId: randomUUID(), roomId, startId, command: "bird and bomb" },
-      1000,
+      100000,
     );
 
     // Ticks 1 through 9: Bird progresses, Castle undamaged
@@ -311,12 +326,12 @@ describe("Air Combat - GameEngine Unit Tests", () => {
     const engine = new GameEngine();
     const { roomId, startId, p1, p2 } = setupGame(engine);
 
-    // P1 launches Bird #1 at t=0
+    // P1 launches Bird #1 at t=100000 (after initial cooldown)
     engine.executeCommand(
       roomId,
       p1,
       { requestId: randomUUID(), roomId, startId, command: "bird and bomb" },
-      0,
+      100000,
     );
 
     // Advance 5 ticks: Bird #1 now has ticksRemaining = 5
@@ -324,12 +339,12 @@ describe("Air Combat - GameEngine Unit Tests", () => {
       engine.tick(roomId);
     }
 
-    // P1 launches Bird #2 at t=BIRD_COOLDOWN_MS (after cooldown): Bird #2 has ticksRemaining = 10
+    // P1 launches Bird #2 at t=100000 + BIRD_COOLDOWN_MS (after cooldown): Bird #2 has ticksRemaining = 10
     engine.executeCommand(
       roomId,
       p1,
       { requestId: randomUUID(), roomId, startId, command: "bird and bomb" },
-      BIRD_COOLDOWN_MS,
+      100000 + BIRD_COOLDOWN_MS,
     );
 
     const snapBefore = engine.getSnapshot(roomId);
@@ -464,7 +479,7 @@ describe("Air Combat - GameEngine Unit Tests", () => {
         roomId,
         startId,
         command: "bird and bomb",
-      }, 1000 + i * 70000);
+      }, 100000 + i * 100000);
 
       expect(res.ok).toBe(true);
       if (res.ok) {

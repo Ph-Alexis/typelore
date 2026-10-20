@@ -148,7 +148,7 @@ describe("Milestone M10: Polish & Playtest Metrics Test Suite", () => {
   });
 
   it("TC04: Bird and Arrow execution tracks birdsLaunched and birdsShotDown", () => {
-    const nowTime = 1000;
+    const nowTime = 100000;
     const engine = new GameEngine({ now: () => nowTime });
     const { roomId, startId, p1, p2 } = setupEngineGame(engine);
 
@@ -384,7 +384,7 @@ describe("Milestone M10: Polish & Playtest Metrics Test Suite", () => {
   });
 
   it("TC11: Overkill damage is capped at target's remaining HP", () => {
-    const nowTime = 1000;
+    const nowTime = 100000;
     const engine = new GameEngine({ now: () => nowTime });
     const { roomId, startId, p1, p2 } = setupEngineGame(engine);
 

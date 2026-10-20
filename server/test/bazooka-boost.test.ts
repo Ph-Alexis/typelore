@@ -9,7 +9,7 @@ import {
 } from "@typelore/shared";
 import { GameEngine } from "../src/game/GameEngine.js";
 
-function setupGame(engine: GameEngine): { roomId: string; startId: string; p1: string; p2: string } {
+function setupGame(engine: GameEngine, serverTime = 0): { roomId: string; startId: string; p1: string; p2: string } {
   const roomId = randomUUID();
   const startId = randomUUID();
   const p1 = "conn-player-1";
@@ -26,7 +26,7 @@ function setupGame(engine: GameEngine): { roomId: string; startId: string; p1: s
       ],
     },
     startId,
-    serverTime: Date.now(),
+    serverTime,
   };
   const state = engine.prepare(start);
   engine.commit(state);
@@ -34,21 +34,43 @@ function setupGame(engine: GameEngine): { roomId: string; startId: string; p1: s
 }
 
 describe("M07 Bazooka & 1-Minute Cooldown Engine", () => {
-  it("initializes two players with bazookaCooldownUntil = 0", () => {
+  it("initializes two players with bazookaCooldownUntil = serverTime + BAZOOKA_COOLDOWN_MS", () => {
+    const serverTime = 100000;
     const engine = new GameEngine();
-    const { roomId } = setupGame(engine);
+    const { roomId } = setupGame(engine, serverTime);
 
     const snapshot = engine.getSnapshot(roomId);
     expect(snapshot).toBeDefined();
-    expect(snapshot?.players[0].bazookaCooldownUntil).toBe(0);
-    expect(snapshot?.players[1].bazookaCooldownUntil).toBe(0);
+    expect(snapshot?.players[0].bazookaCooldownUntil).toBe(serverTime + BAZOOKA_COOLDOWN_MS);
+    expect(snapshot?.players[1].bazookaCooldownUntil).toBe(serverTime + BAZOOKA_COOLDOWN_MS);
   });
 
-  it("fires Bazooka immediately at match start and sets 1-minute cooldown", () => {
-    const now = 100000;
-    const engine = new GameEngine({ now: () => now });
-    const { roomId, startId, p1 } = setupGame(engine);
+  it("rejects 'bazooka' command at match start when initial 1-minute cooldown is active", () => {
+    const serverTime = 100000;
+    const engine = new GameEngine({ now: () => serverTime });
+    const { roomId, startId, p1 } = setupGame(engine, serverTime);
 
+    // Attempt to fire bazooka immediately at match start (now === serverTime)
+    const res = engine.executeCommand(roomId, p1, {
+      requestId: randomUUID(),
+      roomId,
+      startId,
+      command: "bazooka",
+      target: 1,
+    });
+    expect(res.ok).toBe(false);
+    if (!res.ok) {
+      expect(res.code).toBe("BAZOOKA_ON_COOLDOWN");
+    }
+  });
+
+  it("fires Bazooka once initial 1-minute cooldown expires and resets 1-minute cooldown", () => {
+    let now = 100000;
+    const engine = new GameEngine({ now: () => now });
+    const { roomId, startId, p1 } = setupGame(engine, now);
+
+    // Initial cooldown expires after 60s
+    now += BAZOOKA_COOLDOWN_MS;
     const res = engine.executeCommand(roomId, p1, {
       requestId: randomUUID(),
       roomId,
@@ -62,11 +84,13 @@ describe("M07 Bazooka & 1-Minute Cooldown Engine", () => {
     expect(res.state.players[0].bazookaCooldownUntil).toBe(now + BAZOOKA_COOLDOWN_MS);
   });
 
-  it("rejects 'bazooka' command with BAZOOKA_ON_COOLDOWN while on 1-minute cooldown", () => {
+  it("rejects 'bazooka' command with BAZOOKA_ON_COOLDOWN while on subsequent 1-minute cooldown", () => {
     let now = 100000;
     const engine = new GameEngine({ now: () => now });
-    const { roomId, startId, p1 } = setupGame(engine);
+    const { roomId, startId, p1 } = setupGame(engine, now);
 
+    // Advance past initial cooldown
+    now += BAZOOKA_COOLDOWN_MS;
     // Fire 1st time
     const res1 = engine.executeCommand(roomId, p1, {
       requestId: randomUUID(),
@@ -91,7 +115,7 @@ describe("M07 Bazooka & 1-Minute Cooldown Engine", () => {
       expect(res2.code).toBe("BAZOOKA_ON_COOLDOWN");
     }
 
-    // Fire after 60s (now >= cooldownUntil)
+    // Fire after another 30s (now >= cooldownUntil)
     now += 30000;
     const res3 = engine.executeCommand(roomId, p1, {
       requestId: randomUUID(),

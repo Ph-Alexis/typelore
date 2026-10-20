@@ -62,12 +62,26 @@ describe("game command socket boundary", () => {
     }
     outsider.on("game:state-sync", () => { outsiderBroadcasts += 1; });
     const cellTargets: Record<string, number> = {
-      pistol: 1, "load ammo": 1, protector: 2, "add water": 3, "add clay": 3, bazooka: 1,
+      pistol: 1, "load ammo": 1, protector: 2, "add water": 3, "add clay": 3,
     };
-    await request(guest, "game:command", {
+    // At match start, both bird and bazooka start on initial active cooldown
+    const birdStartAck = await request(guest, "game:command", {
       requestId: randomUUID(), roomId: sync.room.roomId, startId: sync.state.startId, command: "BIRD AND BOMB",
     });
+    expect(birdStartAck).toMatchObject({ ok: false, error: { code: "BIRD_ON_COOLDOWN" } });
+
+    const bazookaStartAck = await request(host, "game:command", {
+      requestId: randomUUID(), roomId: sync.room.roomId, startId: sync.state.startId, command: "BAZOOKA", target: 1,
+    });
+    expect(bazookaStartAck).toMatchObject({ ok: false, error: { code: "BAZOOKA_ON_COOLDOWN" } });
+
+    const arrowNoTargetAck = await request(host, "game:command", {
+      requestId: randomUUID(), roomId: sync.room.roomId, startId: sync.state.startId, command: "ARROW",
+    });
+    expect(arrowNoTargetAck).toMatchObject({ ok: false, error: { code: "NO_AIR_TARGET" } });
+
     for (const [command, max] of Object.entries(COMMAND_RULES)) {
+      if (command === "bazooka" || command === "bird and bomb" || command === "arrow") continue;
       const target = cellTargets[command] ?? (max ? max : undefined);
       const payload = { requestId: randomUUID(), roomId: sync.room.roomId, startId: sync.state.startId,
         command: command.toUpperCase(), ...(target ? { target } : {}) };
@@ -77,7 +91,7 @@ describe("game command socket boundary", () => {
     for (const client of [host, guest, outsider]) success(await request(client, "connection:ping", { nonce: "barrier", clientTime: 0 }));
     expect(broadcasts).toBeGreaterThan(0);
     expect(outsiderBroadcasts).toBe(0);
-    const duplicate = { requestId: randomUUID(), roomId: sync.room.roomId, startId: sync.state.startId, command: "arrow" };
+    const duplicate = { requestId: randomUUID(), roomId: sync.room.roomId, startId: sync.state.startId, command: "load ammo", target: 1 };
     expect(await request(host, "game:command", duplicate)).toMatchObject({ ok: true });
     expect(await request(host, "game:command", duplicate)).toMatchObject({ ok: true });
     expect(await request(outsider, "game:command", duplicate)).toMatchObject({ ok: false, error: { code: "NOT_IN_ROOM" } });

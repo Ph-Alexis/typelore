@@ -54,7 +54,7 @@ export class RoomManager {
     this.code = options.code ?? generateRoomCode;
     this.uuid = options.uuid ?? randomUUID;
     this.now = options.now ?? Date.now;
-    this.games = options.games ?? new GameEngine();
+    this.games = options.games ?? new GameEngine(options.now ? { now: options.now } : undefined);
     this.onSync = options.onSync;
     this.tickIntervalMs = options.tickIntervalMs ?? 1000;
   }
