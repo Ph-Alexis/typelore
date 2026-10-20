@@ -5,12 +5,13 @@ import styles from "./Battlefield.module.css";
 
 export function CastleTower({
   castle,
-  boost,
+  bazookaCooldownUntil = 0,
   birdCooldownUntil = 0,
   opponent,
 }: {
   castle: CastleState;
-  boost: number;
+  bazookaCooldownUntil?: number;
+  boost?: number;
   birdCooldownUntil?: number;
   opponent: boolean;
 }) {
@@ -18,21 +19,24 @@ export function CastleTower({
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
-    if (birdCooldownUntil <= 0 || now >= birdCooldownUntil) return;
+    const bazookaActive = bazookaCooldownUntil > 0 && now < bazookaCooldownUntil;
+    const birdActive = birdCooldownUntil > 0 && now < birdCooldownUntil;
+    if (!bazookaActive && !birdActive) return;
     const interval = setInterval(() => setNow(Date.now()), 250);
     return () => clearInterval(interval);
-  }, [birdCooldownUntil, now]);
+  }, [bazookaCooldownUntil, birdCooldownUntil, now]);
 
   const hpPercent = Math.max(0, Math.min(100, Math.round((castle.hp / castle.maxHp) * 100)));
   const isCritical = hpPercent <= 25;
-  const isBoostReady = boost >= 10;
+  const isBazookaReady = bazookaCooldownUntil <= 0 || now >= bazookaCooldownUntil;
+  const bazookaRemainingSec = isBazookaReady ? 0 : Math.max(0, Math.ceil((bazookaCooldownUntil - now) / 1000));
   const isBirdReady = birdCooldownUntil <= 0 || now >= birdCooldownUntil;
   const birdRemainingSec = isBirdReady ? 0 : Math.max(0, Math.ceil((birdCooldownUntil - now) / 1000));
 
   return (
     <aside
       className={`${styles.castleTower} ${opponent ? styles.towerOpponent : styles.towerSelf} ${
-        isBoostReady ? styles.towerBoostReady : ""
+        isBazookaReady ? styles.towerBoostReady : ""
       }`}
       data-tower={opponent ? "opponent" : "self"}
       aria-label={opponent ? t("castleWallOpponentAria") : t("castleWallSelfAria")}
@@ -60,35 +64,36 @@ export function CastleTower({
 
       {/* 3. Mounted Bazooka Turret Station on the Battlement */}
       <div
-        className={`${styles.towerBazookaStation} ${isBoostReady ? styles.bazookaArmReady : ""}`}
-        title={`Bazooka ${isBoostReady ? t("readyCaps") : `Boost ${boost}/10`}`}
+        className={`${styles.towerBazookaStation} ${isBazookaReady ? styles.bazookaArmReady : styles.bazookaArmCooldown}`}
+        title={`Bazooka: ${isBazookaReady ? t("readyCaps") : `${bazookaRemainingSec}s`}`}
+        aria-label={`Bazooka: ${isBazookaReady ? t("readyCaps") : `${bazookaRemainingSec}s`}`}
       >
         <div className={styles.towerBazookaWeapon}>
           <span
             className={`${styles.bazookaIcon} ${
               opponent ? styles.bazookaOpponent : styles.bazookaSelf
-            } ${isBoostReady ? styles.bazookaCharged : ""}`}
+            } ${isBazookaReady ? styles.bazookaCharged : ""}`}
             aria-hidden="true"
           >
             🚀
           </span>
-          {isBoostReady && <span className={styles.bazookaGlowAura} aria-hidden="true" />}
+          {isBazookaReady && <span className={styles.bazookaGlowAura} aria-hidden="true" />}
         </div>
         <div className={styles.towerBoostBox}>
           <div className={styles.towerBoostLabel}>
-            {isBoostReady ? (
-              <span className={styles.boostReadyText}>{t("boostReadyText")}</span>
+            {isBazookaReady ? (
+              <span className={styles.boostReadyText}>🚀 BAZOOKA: {t("readyCaps")}</span>
             ) : (
-              <span>{t("boost")} {boost}/10</span>
+              <span className={styles.bazookaCountdownText}>🚀 {bazookaRemainingSec}s</span>
             )}
           </div>
           <progress
             className={`${styles.towerBoostProgress} ${
-              isBoostReady ? styles.boostProgressReady : ""
+              isBazookaReady ? styles.boostProgressReady : ""
             }`}
-            value={boost}
-            max={10}
-            aria-label={t("bazookaBoostAria", { boost })}
+            value={isBazookaReady ? 60 : Math.max(0, 60 - bazookaRemainingSec)}
+            max={60}
+            aria-label={`Bazooka ${isBazookaReady ? t("readyCaps") : `${bazookaRemainingSec}s`}`}
           />
         </div>
       </div>

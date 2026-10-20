@@ -64,11 +64,6 @@ describe("game command socket boundary", () => {
     const cellTargets: Record<string, number> = {
       pistol: 1, "load ammo": 1, protector: 2, "add water": 3, "add clay": 3, bazooka: 1,
     };
-    for (let b = 0; b < 10; b++) {
-      await request(host, "game:command", {
-        requestId: randomUUID(), roomId: sync.room.roomId, startId: sync.state.startId, command: "BOOST",
-      });
-    }
     await request(guest, "game:command", {
       requestId: randomUUID(), roomId: sync.room.roomId, startId: sync.state.startId, command: "BIRD AND BOMB",
     });
@@ -82,7 +77,7 @@ describe("game command socket boundary", () => {
     for (const client of [host, guest, outsider]) success(await request(client, "connection:ping", { nonce: "barrier", clientTime: 0 }));
     expect(broadcasts).toBeGreaterThan(0);
     expect(outsiderBroadcasts).toBe(0);
-    const duplicate = { requestId: randomUUID(), roomId: sync.room.roomId, startId: sync.state.startId, command: "boost" };
+    const duplicate = { requestId: randomUUID(), roomId: sync.room.roomId, startId: sync.state.startId, command: "arrow" };
     expect(await request(host, "game:command", duplicate)).toMatchObject({ ok: true });
     expect(await request(host, "game:command", duplicate)).toMatchObject({ ok: true });
     expect(await request(outsider, "game:command", duplicate)).toMatchObject({ ok: false, error: { code: "NOT_IN_ROOM" } });
@@ -90,14 +85,14 @@ describe("game command socket boundary", () => {
 
   it("rejects no protocol, malformed payloads, lobby, wrong room/start and requests after leave", async () => {
     const url = await server(); const host = await connect(url); const guest = await connect(url); const unready = await connect(url, false);
-    const payload = { requestId: randomUUID(), roomId: randomUUID(), startId: randomUUID(), command: "boost" };
+    const payload = { requestId: randomUUID(), roomId: randomUUID(), startId: randomUUID(), command: "bird and bomb" };
     expect(await request(unready, "game:command", payload)).toMatchObject({ error: { code: "PROTOCOL_NOT_READY" } });
     success(await request(unready, "protocol:hello", { protocolVersion: PROTOCOL_VERSION }));
     const room = success(await request<{ room: RoomState }>(unready, "room:create", {})).room;
     expect(await request(unready, "game:command", { ...payload, roomId: room.roomId })).toMatchObject({ error: { code: "GAME_NOT_ACTIVE" } });
     const sync = await match(host, guest);
     const valid = { ...payload, roomId: sync.room.roomId, startId: sync.state.startId };
-    for (const bad of [{ ...valid, command: "boost " }, { ...valid, target: 1 }, { ...valid, playerId: guest.id },
+    for (const bad of [{ ...valid, command: "bird and bomb " }, { ...valid, target: 1 }, { ...valid, playerId: guest.id },
       { ...valid, hp: 200 }, { ...valid, command: "pistol" }, { ...valid, command: "bazooka", target: 5 },
       { ...valid, command: "pistol", target: "1" }, { ...valid, command: "pistol", target: 1.5 }]) {
       expect(await request(host, "game:command", bad)).toMatchObject({ error: { code: "INVALID_PAYLOAD" } });

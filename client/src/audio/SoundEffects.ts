@@ -333,6 +333,34 @@ class SoundEffects {
       // Audio playback fails gracefully
     }
   }
+
+  playCountdown(isFinal = false): void {
+    if (this.isMuted) return;
+    try {
+      const ctx = this.getContext();
+      if (!ctx) return;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const freq = isFinal ? 880 : 520;
+      const duration = isFinal ? 0.3 : 0.12;
+
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      if (isFinal) {
+        osc.frequency.exponentialRampToValueAtTime(1046.5, ctx.currentTime + duration);
+      }
+
+      gain.gain.setValueAtTime(0.22, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + duration);
+    } catch {
+      // Audio playback fails gracefully
+    }
+  }
 }
 
 export const sound = new SoundEffects();

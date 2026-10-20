@@ -398,11 +398,6 @@ describe("Air Combat - GameEngine Unit Tests", () => {
     // P2 launches Bird
     engine.executeCommand(roomId, p2, { requestId: randomUUID(), roomId, startId, command: "bird and bomb" });
 
-    // P1 boosts Bazooka to 10
-    for (let b = 0; b < 10; b++) {
-      engine.executeCommand(roomId, p1, { requestId: randomUUID(), roomId, startId, command: "boost" });
-    }
-
     // P1 fires Bazooka at Area 1 on P2 grid
     const bazookaRes = engine.executeCommand(roomId, p1, {
       requestId: randomUUID(),

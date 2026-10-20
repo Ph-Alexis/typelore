@@ -83,7 +83,8 @@ export const translations = {
     cmdErrNotAPistol: "Ô mục tiêu không phải Pistol để nạp đạn.",
     cmdErrInvalidTarget: "Vị trí mục tiêu không hợp lệ.",
     cmdErrNoBrickAvailable: "Không có Brick trên sân để hồi máu Castle.",
-    cmdErrBoostNotReady: "Chưa tích đủ 10 boost để bắn Bazooka.",
+    cmdErrBoostNotReady: "Bazooka đang hồi chiêu (1 phút từ lúc bắn).",
+    cmdErrBazookaOnCooldown: "Bazooka đang hồi chiêu (1 phút từ lúc bắn).",
     cmdErrBirdOnCooldown: "Bird đang hồi chiêu (20 giây từ lúc thả).",
     cmdErrNoAirTarget: "Không có Bird đối thủ trên không để bắn tên.",
     cmdErrTimeout: "Chưa nhận xác nhận; vui lòng nhập lại.",
@@ -120,7 +121,7 @@ export const translations = {
     // Command Input
     commandLabel: "Nhập lệnh tác chiến:",
     commandHelpHint: "(Gõ 'help' để xem bảng lệnh nhanh)",
-    commandPlaceholder: "> Nhập lệnh... ví dụ: pistol 5, bird 2, boost...",
+    commandPlaceholder: "> Nhập lệnh... ví dụ: pistol 5, bird 2, bazooka c...",
 
     // Battle Log
     battleLogTitle: "BATTLE LOG",
@@ -146,9 +147,9 @@ export const translations = {
     cmdProtectorDesc: "Dựng tường chắn (20 HP)",
     cmdWaterDesc: "Đổ nước (10 HP)",
     cmdClayDesc: "Đất sét (gặp nước đúc Gạch)",
-    cmdBrickDesc: "Dùng gạch hồi +15 HP Castle",
+    cmdBrickDesc: "Dùng gạch hồi +25 HP Castle",
     cmdBoostDesc: "Tích 1 nấc Bazooka (cần 10 nấc)",
-    cmdBazookaDesc: "Bắn nổ lan 4 ô (Khu A-D, sát thương 10)",
+    cmdBazookaDesc: "Bắn nổ lan 4 ô (Khu A-D, sát thương 10, hồi chiêu 1 phút)",
     cmdBirdDesc: "Thả chim ném bom Castle (-20 HP)",
     cmdArrowDesc: "Gõ chữ cái trên chim để bắn hạ",
 
@@ -300,7 +301,8 @@ export const translations = {
     cmdErrNotAPistol: "Target cell is not a Pistol to load ammo.",
     cmdErrInvalidTarget: "Invalid target position.",
     cmdErrNoBrickAvailable: "No Brick available on grid to repair Castle.",
-    cmdErrBoostNotReady: "Not enough boost (requires 10) to fire Bazooka.",
+    cmdErrBoostNotReady: "Bazooka is on cooldown (1 minute from launch).",
+    cmdErrBazookaOnCooldown: "Bazooka is on cooldown (1 minute from launch).",
     cmdErrBirdOnCooldown: "Bird is on cooldown (20 seconds from launch).",
     cmdErrNoAirTarget: "No enemy bird airborne to shoot down.",
     cmdErrTimeout: "Confirmation timed out; please re-enter command.",
@@ -337,7 +339,7 @@ export const translations = {
     // Command Input
     commandLabel: "Type combat command:",
     commandHelpHint: "(Type 'help' for command cheatsheet)",
-    commandPlaceholder: "> Type command... e.g. pistol 5, bird 2, boost...",
+    commandPlaceholder: "> Type command... e.g. pistol 5, bird 2, bazooka c...",
 
     // Battle Log
     battleLogTitle: "BATTLE LOG",
@@ -363,9 +365,9 @@ export const translations = {
     cmdProtectorDesc: "Build protector wall (20 HP)",
     cmdWaterDesc: "Pour water (10 HP)",
     cmdClayDesc: "Clay (combines with water -> Brick)",
-    cmdBrickDesc: "Use brick to heal +15 Castle HP",
+    cmdBrickDesc: "Use brick to heal +25 Castle HP",
     cmdBoostDesc: "Charge 1 Bazooka boost (needs 10)",
-    cmdBazookaDesc: "AOE strike 4 cells (Area A-D, 10 damage)",
+    cmdBazookaDesc: "AOE strike 4 cells (Area A-D, 10 damage, 1m cooldown)",
     cmdBirdDesc: "Launch bird bomb at Castle (-20 HP)",
     cmdArrowDesc: "Type letters on bird to shoot down",
 

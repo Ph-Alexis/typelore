@@ -56,7 +56,7 @@ describe("exact shared command parser", () => {
     }
   });
   it("validates strict correlated ACK shape without coercion", () => {
-    const payload = { ...ids(), command: "boost" };
+    const payload = { ...ids(), command: "bird and bomb" };
     const ack = { ok: true, data: { ...payload, status: "VALIDATED" }, serverTime: 0 };
     expect(CommandAckSchema.safeParse(ack).success).toBe(true);
     expect(CommandAckSchema.safeParse({ ...ack, serverTime: Infinity }).success).toBe(false);

@@ -18,7 +18,7 @@ export function matchGroundCommand(raw: string): ParsedCommand | null {
 
   // 1. Zero-target commands (must be exact match without trailing spaces)
   // "add brick" and "use brick" are removed so bare typing does not auto-submit!
-  const zeroTargetCommands = ["boost", "bird and bomb"] as const;
+  const zeroTargetCommands = ["bird and bomb"] as const;
   for (const cmd of zeroTargetCommands) {
     if (text === cmd) {
       return { command: cmd };

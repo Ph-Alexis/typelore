@@ -23,9 +23,10 @@ export const PROTECTOR_HP = 30;
 export const WATER_HP = 5;
 export const CLAY_HP = 10;
 export const BRICK_HP = 15;
-export const BRICK_HEAL = 15;
+export const BRICK_HEAL = 25;
 export const BAZOOKA_REQUIRED_BOOST = 10;
 export const BAZOOKA_DAMAGE = 10;
+export const BAZOOKA_COOLDOWN_MS = 60000;
 
 export const COMBAT_ROWS = {
   1: [7, 8, 9], // Row 1 (Top)
@@ -121,7 +122,8 @@ export const PlayerBattlefieldStateSchema = z.object({
   slot: PlayerSlotSchema,
   connectionId: z.string().min(1).max(128),
   castle: CastleStateSchema,
-  bazookaBoost: z.number().int().min(0).max(BAZOOKA_REQUIRED_BOOST),
+  bazookaCooldownUntil: z.number().finite().nonnegative().default(0),
+  bazookaBoost: z.number().int().min(0).max(BAZOOKA_REQUIRED_BOOST).default(0).optional(),
   birdCooldownUntil: z.number().finite().nonnegative(),
   birds: z.array(BirdStateSchema),
   grid: z.array(GridCellStateSchema).length(GRID_CELL_COUNT)

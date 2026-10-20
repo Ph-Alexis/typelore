@@ -69,8 +69,8 @@ export function CommandInput({
           : "Gõ lệnh để tự động kích hoạt (không cần Enter).");
 
   let placeholderText = isEn
-    ? "> Type command (e.g. pistol 1, load ammo 1, protector 9, use brick, boost...)"
-    : "> Nhập lệnh (ví dụ: pistol 1, load ammo 1, protector 9, use brick, boost...)";
+    ? "> Type command (e.g. pistol 1, load ammo 1, protector 9, use brick 9, boost...)"
+    : "> Nhập lệnh (ví dụ: pistol 1, load ammo 1, protector 9, use brick 9, boost...)";
 
   if (birdLock.active) {
     labelText = isEn ? "🦅 BIRD TARGET LOCKED:" : "🦅 KHÓA MỤC TIÊU CHIM:";

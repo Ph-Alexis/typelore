@@ -101,7 +101,8 @@ export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
   // Player state
   const [playerGrid, setPlayerGrid] = useState<GridCellState[]>(createEmptyGrid);
   const [playerCastleHp, setPlayerCastleHp] = useState(CASTLE_HP);
-  const [playerBoost, setPlayerBoost] = useState(0);
+  const [playerBoost] = useState(0);
+  const [playerBazookaCooldown, setPlayerBazookaCooldown] = useState(0);
   const [playerBirdCooldown, setPlayerBirdCooldown] = useState(0);
   const [playerBirds, setPlayerBirds] = useState<BirdState[]>([]);
 
@@ -109,6 +110,7 @@ export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
   const [botGrid, setBotGrid] = useState<GridCellState[]>(createEmptyGrid);
   const [botCastleHp, setBotCastleHp] = useState(CASTLE_HP);
   const [botBoost] = useState(0);
+  const [botBazookaCooldown] = useState(0);
   const [botBirdCooldown] = useState(0);
   const [botBirds, setBotBirds] = useState<BirdState[]>([]);
 
@@ -266,11 +268,11 @@ export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
 
                       setTimeout(() => {
                         sound.playHit();
-                        setPlayerCastleHp(195);
-                        addCombatText("-5 HP (TRÚNG THÀNH!)", "damage", "self-castle");
+                        setPlayerCastleHp(190);
+                        addCombatText("-10 HP (TRÚNG THÀNH!)", "damage", "self-castle");
                         setBullets([]);
 
-                        // Shot 8 (Castle damaged further: 195 -> 185 HP, -15 HP total!)
+                        // Shot 8 (Castle damaged further: 190 -> 175 HP, -25 HP total!)
                         setTimeout(() => {
                           sound.playPistol();
                           setBullets([{ id: Math.random().toString(), fromOpponent: true, shooterCellId: 2, hitCellId: null, lane: 3 }]);
@@ -278,8 +280,8 @@ export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
 
                           setTimeout(() => {
                             sound.playHit();
-                            setPlayerCastleHp(185);
-                            addCombatText("-10 HP (LÂU ĐÀI HƯ HẠI!)", "damage", "self-castle");
+                            setPlayerCastleHp(175);
+                            addCombatText("-15 HP (LÂU ĐÀI HƯ HẠI!)", "damage", "self-castle");
                             setBullets([]);
 
                             setTimeout(() => {
@@ -296,6 +298,23 @@ export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
           }, 400);
         }, 500);
       }, 400);
+    } else if (step === 9) {
+      // Step 9 (B10): Bazooka ready & Bot deploys Area C obstacles
+      sound.playHeal();
+      addCombatText("BAZOOKA READY! (1 MIN COOLDOWN)", "heal", "self-castle");
+      setBotGrid((grid) =>
+        grid.map((c) => {
+          if (c.id === 1) return { id: 1, object: { type: "PROTECTOR", hp: 10, maxHp: PROTECTOR_HP } };
+          if (c.id === 2) return { id: 2, object: { type: "PISTOL", hp: 10, maxHp: PISTOL_HP, ammo: 0, maxAmmo: PISTOL_MAX_AMMO } };
+          if (c.id === 4) return { id: 4, object: { type: "CLAY", hp: 10, maxHp: CLAY_HP } };
+          if (c.id === 5) return { id: 5, object: { type: "WATER", hp: 5, maxHp: WATER_HP } };
+          return c;
+        }),
+      );
+      addCombatText("BOT: AREA C DEFENSES READY", "info", "cell-5-opp");
+      setTimeout(() => {
+        goToStep(10);
+      }, 1500);
     } else if (step === 12) {
       // Step 12 (B13): Bot bird and bomb
       sound.playBirdSpawn();
@@ -342,6 +361,17 @@ export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
       setBullets([]);
       addCombatText("💥 BỂ KHIÊN & HƯ HẠI LÂU ĐÀI (185/200 HP)", "damage", "self-castle");
       goToStep(6);
+    } else if (stepIndex === 9) {
+      setBotGrid((grid) =>
+        grid.map((c) => {
+          if (c.id === 1) return { id: 1, object: { type: "PROTECTOR", hp: 10, maxHp: PROTECTOR_HP } };
+          if (c.id === 2) return { id: 2, object: { type: "PISTOL", hp: 10, maxHp: PISTOL_HP, ammo: 0, maxAmmo: PISTOL_MAX_AMMO } };
+          if (c.id === 4) return { id: 4, object: { type: "CLAY", hp: 10, maxHp: CLAY_HP } };
+          if (c.id === 5) return { id: 5, object: { type: "WATER", hp: 5, maxHp: WATER_HP } };
+          return c;
+        }),
+      );
+      goToStep(10);
     }
   };
 
@@ -462,50 +492,29 @@ export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
       return;
     }
 
-    // Step 8 (B9: add brick 9 or use brick 9) -> heals player castle
+    // Step 8 (B9: use brick 9) -> heals player castle +25 HP
     if (
       stepIndex === 8 &&
-      (cmd === "add brick 9" || cmd === "use brick 9")
+      (cmd === "use brick 9" || cmd === "add brick 9")
     ) {
       setPlayerGrid((grid) =>
         grid.map((c) => (c.id === 9 ? { id: 9, object: null } : c)),
       );
       setPlayerCastleHp(CASTLE_HP);
       sound.playHeal();
-      addCombatText("+15 HP HEAL!", "heal", "self-castle");
+      addCombatText("+25 HP HEAL!", "heal", "self-castle");
       goToStep(9);
       return;
     }
 
-    // Step 9 (B10: boost) -> full charge to 10/10, bot deploys Area C obstacles
-    if (stepIndex === 9 && cmd === "boost") {
-      setPlayerBoost(10);
-      sound.playHeal();
-      addCombatText("BAZOOKA READY! (10/10)", "heal", "self-castle");
-
-      // Bot places dummy obstacles in Area C (cells 1, 2, 4, 5)
-      setBotGrid((grid) =>
-        grid.map((c) => {
-          if (c.id === 1) return { id: 1, object: { type: "PROTECTOR", hp: 10, maxHp: PROTECTOR_HP } };
-          if (c.id === 2) return { id: 2, object: { type: "PISTOL", hp: 10, maxHp: PISTOL_HP, ammo: 0, maxAmmo: PISTOL_MAX_AMMO } };
-          if (c.id === 4) return { id: 4, object: { type: "CLAY", hp: 10, maxHp: CLAY_HP } };
-          if (c.id === 5) return { id: 5, object: { type: "WATER", hp: 5, maxHp: WATER_HP } };
-          return c;
-        }),
-      );
-      addCombatText("BOT: AREA C DEFENSES READY", "info", "cell-5-opp");
-      goToStep(10);
-      return;
-    }
-
-    // Step 10 (B11: bazooka c) -> fires rockets into Area C, wiping out obstacles
+    // Step 10 (B11: bazooka c) -> fires rockets into Area C, wiping out obstacles and starts 1-min cooldown
     if (stepIndex === 10 && cmd === "bazooka c") {
       sound.playBazooka();
       setRockets([
         { id: Math.random().toString(), fromOpponent: false, targetCellId: 5 },
         { id: Math.random().toString(), fromOpponent: false, targetCellId: 2 },
       ]);
-      setPlayerBoost(0);
+      setPlayerBazookaCooldown(Date.now() + 60000);
 
       setTimeout(() => {
         sound.playHit();
@@ -626,14 +635,14 @@ export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
 
     const typedLower = val.toLowerCase();
 
-    // Special handling for Step 8 (B9: add brick 9 or use brick 9)
+    // Special handling for Step 8 (B9: use brick 9)
     if (stepIndex === 8) {
-      if (typedLower === "add brick 9" || typedLower === "use brick 9") {
+      if (typedLower === "use brick 9" || typedLower === "add brick 9") {
         setDraft("");
-        executeCommandStep("add brick 9");
+        executeCommandStep("use brick 9");
         return;
       }
-      if ("add brick 9".startsWith(typedLower) || "use brick 9".startsWith(typedLower)) {
+      if ("use brick 9".startsWith(typedLower) || "add brick 9".startsWith(typedLower)) {
         setDraft(val);
         setHasError(false);
         setFeedback("");
@@ -641,7 +650,7 @@ export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
       } else {
         sound.playError();
         setHasError(true);
-        setFeedback(isEn ? `⚠️ Step requires: "add brick 9" (or "use brick 9")` : `⚠️ Bước này yêu cầu gõ: "add brick 9" (hoặc "use brick 9")`);
+        setFeedback(isEn ? `⚠️ Step requires: "use brick 9"` : `⚠️ Bước này yêu cầu gõ: "use brick 9"`);
       }
       return;
     }
@@ -682,7 +691,7 @@ export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
       if (
         trimmed === req ||
         (stepIndex === 8 &&
-          (trimmed === "add brick 9" || trimmed === "use brick 9"))
+          (trimmed === "use brick 9" || trimmed === "add brick 9"))
       ) {
         setDraft("");
         executeCommandStep(req);
@@ -691,7 +700,7 @@ export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
         setHasError(true);
         setFeedback(
           stepIndex === 8
-            ? (isEn ? `⚠️ Step requires: "add brick 9" (or "use brick 9")` : `⚠️ Bước này yêu cầu gõ: "add brick 9" (hoặc "use brick 9")`)
+            ? (isEn ? `⚠️ Step requires: "use brick 9"` : `⚠️ Bước này yêu cầu gõ: "use brick 9"`)
             : (isEn ? `⚠️ Tutorial requires: "${currentStep.requiredCommand}"` : `⚠️ Bước này yêu cầu gõ: "${currentStep.requiredCommand}"`)
         );
       }
@@ -703,6 +712,7 @@ export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
     slot: "PLAYER_1",
     connectionId: "player",
     castle: { hp: playerCastleHp, maxHp: CASTLE_HP },
+    bazookaCooldownUntil: playerBazookaCooldown,
     bazookaBoost: playerBoost,
     birdCooldownUntil: playerBirdCooldown,
     birds: playerBirds,
@@ -713,6 +723,7 @@ export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
     slot: "PLAYER_2",
     connectionId: "bot",
     castle: { hp: botCastleHp, maxHp: CASTLE_HP },
+    bazookaCooldownUntil: botBazookaCooldown,
     bazookaBoost: botBoost,
     birdCooldownUntil: botBirdCooldown,
     birds: botBirds,
@@ -803,9 +814,11 @@ export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
                   BIRD {mockBot.birds.length > 0 ? "ATTACKING!" : "READY"}
                 </span>
               </div>
-              <div className={bStyles.hudBoostRow}>
-                <span className={bStyles.hudBoostText}>BOOST {mockBot.bazookaBoost}/10</span>
-                <progress className={bStyles.hudBoostBar} value={mockBot.bazookaBoost} max={10} />
+              <div className={bStyles.hudBazookaRow}>
+                <span className={bStyles.hudBazookaIcon} aria-hidden="true">🚀</span>
+                <span className={`${bStyles.hudBazookaText} ${bStyles.hudBazookaReady}`}>
+                  BAZOOKA READY
+                </span>
               </div>
             </div>
 
@@ -830,9 +843,11 @@ export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
                 </span>
                 <span className={bStyles.hudBirdIcon} aria-hidden="true">🦅</span>
               </div>
-              <div className={bStyles.hudBoostRow}>
-                <span className={bStyles.hudBoostText}>BOOST {mockPlayer.bazookaBoost}/10</span>
-                <progress className={bStyles.hudBoostBar} value={mockPlayer.bazookaBoost} max={10} />
+              <div className={bStyles.hudBazookaRow}>
+                <span className={`${bStyles.hudBazookaText} ${playerBazookaCooldown > now ? bStyles.hudBazookaCooldown : bStyles.hudBazookaReady}`}>
+                  BAZOOKA {playerBazookaCooldown > now ? `${Math.max(0, Math.ceil((playerBazookaCooldown - now) / 1000))}s` : "READY"}
+                </span>
+                <span className={bStyles.hudBazookaIcon} aria-hidden="true">🚀</span>
               </div>
             </div>
           </header>
@@ -852,7 +867,7 @@ export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
               {/* Bot Castle Tower */}
               <CastleTower
                 castle={mockBot.castle}
-                boost={mockBot.bazookaBoost}
+                bazookaCooldownUntil={mockBot.bazookaCooldownUntil}
                 birdCooldownUntil={mockBot.birdCooldownUntil}
                 opponent={true}
               />
@@ -890,7 +905,7 @@ export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
               {/* Player Castle Tower */}
               <CastleTower
                 castle={mockPlayer.castle}
-                boost={mockPlayer.bazookaBoost}
+                bazookaCooldownUntil={mockPlayer.bazookaCooldownUntil}
                 birdCooldownUntil={mockPlayer.birdCooldownUntil}
                 opponent={false}
               />
@@ -985,8 +1000,8 @@ export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
             </h2>
             <p className={styles.victoryDesc}>
               {isEn
-                ? "Congratulations! You have mastered all 11 battle operations and commands in Typelore: Firearms, ammo loading, tanker shields, resource gathering, healing, brick wall construction, Bazooka boost & AOE barrage, bombing birds, and air defense."
-                : "Chúc mừng bạn! Bạn đã thành thạo toàn bộ 11 thao tác và lệnh chiến đấu trong Typelore: Đặt súng lục, nạp đạn, khiên bảo vệ, khai thác đất sét & nước, đúc gạch hồi máu, dựng tường gạch, tích boost, pháo bazooka oanh tạc, thả chim ném bom và bắn hạ chim địch."}
+                ? "Congratulations! You have mastered all battle operations and commands in Typelore: Firearms, ammo loading, tanker shields, resource gathering, healing, brick wall construction, Bazooka AOE barrage, bombing birds, and air defense."
+                : "Chúc mừng bạn! Bạn đã thành thạo toàn bộ thao tác và lệnh chiến đấu trong Typelore: Đặt súng lục, nạp đạn, khiên bảo vệ, khai thác đất sét & nước, đúc gạch hồi máu, dựng tường gạch, pháo bazooka oanh tạc, thả chim ném bom và bắn hạ chim địch."}
             </p>
 
             <div className={styles.learnedList}>
@@ -996,8 +1011,6 @@ export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
               <span className={styles.learnedBadge}>✓ add clay</span>
               <span className={styles.learnedBadge}>✓ add water</span>
               <span className={styles.learnedBadge}>✓ use brick</span>
-              <span className={styles.learnedBadge}>✓ add brick</span>
-              <span className={styles.learnedBadge}>✓ boost</span>
               <span className={styles.learnedBadge}>✓ bazooka</span>
               <span className={styles.learnedBadge}>✓ bird and bomb</span>
               <span className={styles.learnedBadge}>✓ arrow</span>

@@ -1,4 +1,4 @@
-import { getCellRow, getTargetRowCells, type GameState } from "@typelore/shared";
+import { getCellRow, getTargetRowCells, type GameState, type RoomState } from "@typelore/shared";
 import { Grid } from "./Grid";
 import { CastleTower } from "./CastleTower";
 import { CombatCorridor } from "./CombatCorridor";
@@ -25,16 +25,27 @@ function formatSpeed(chars: number, durationSec: number): string {
   return `${cpm} CPM (~${wpm} WPM)`;
 }
 
-export function Battlefield({ game, connectionId, busy, onLeave }: {
-  game: GameState; connectionId: string | undefined; busy: boolean; onLeave: () => void;
+export function Battlefield({ game, room, connectionId, busy, onLeave }: {
+  game: GameState;
+  room?: RoomState | null;
+  connectionId: string | undefined;
+  busy: boolean;
+  onLeave: () => void;
 }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const isEn = language === "en";
   const battlefield = useRef<HTMLElement>(null);
   const self = game.players.find((player) => player.connectionId === connectionId);
   const opponent = game.players.find((player) => player.connectionId !== connectionId);
   const [muted, setMuted] = useState(sound.muted);
   const [rematchStartId, setRematchStartId] = useState<string | null>(null);
-  const rematchWaiting = rematchStartId === game.startId;
+  const [countdown, setCountdown] = useState<number | "FIGHT" | null>(3);
+  const [lastStartId, setLastStartId] = useState(game.startId);
+
+  if (game.startId !== lastStartId) {
+    setLastStartId(game.startId);
+    setCountdown(3);
+  }
   const [activeBirdLock, setActiveBirdLock] = useState<{
     active: boolean;
     targetBirdId: string | null;
@@ -60,16 +71,31 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
     if (!self || !opponent) return;
     const hasCooldown =
       (self.birdCooldownUntil > 0 && hudNow < self.birdCooldownUntil) ||
-      (opponent.birdCooldownUntil > 0 && hudNow < opponent.birdCooldownUntil);
+      (opponent.birdCooldownUntil > 0 && hudNow < opponent.birdCooldownUntil) ||
+      (self.bazookaCooldownUntil > 0 && hudNow < self.bazookaCooldownUntil) ||
+      (opponent.bazookaCooldownUntil > 0 && hudNow < opponent.bazookaCooldownUntil);
     if (!hasCooldown) return;
     const interval = setInterval(() => setHudNow(Date.now()), 250);
     return () => clearInterval(interval);
-  }, [self?.birdCooldownUntil, opponent?.birdCooldownUntil, hudNow, self, opponent]);
+  }, [
+    self?.birdCooldownUntil,
+    opponent?.birdCooldownUntil,
+    self?.bazookaCooldownUntil,
+    opponent?.bazookaCooldownUntil,
+    hudNow,
+    self,
+    opponent,
+  ]);
 
   const selfBirdReady = !self || self.birdCooldownUntil <= 0 || hudNow >= self.birdCooldownUntil;
   const selfRemainingSec = selfBirdReady ? 0 : Math.max(0, Math.ceil((self.birdCooldownUntil - hudNow) / 1000));
   const oppBirdReady = !opponent || opponent.birdCooldownUntil <= 0 || hudNow >= opponent.birdCooldownUntil;
   const oppRemainingSec = oppBirdReady ? 0 : Math.max(0, Math.ceil((opponent.birdCooldownUntil - hudNow) / 1000));
+
+  const selfBazookaReady = !self || self.bazookaCooldownUntil <= 0 || hudNow >= self.bazookaCooldownUntil;
+  const selfBazookaRemainingSec = selfBazookaReady ? 0 : Math.max(0, Math.ceil((self.bazookaCooldownUntil - hudNow) / 1000));
+  const oppBazookaReady = !opponent || opponent.bazookaCooldownUntil <= 0 || hudNow >= opponent.bazookaCooldownUntil;
+  const oppBazookaRemainingSec = oppBazookaReady ? 0 : Math.max(0, Math.ceil((opponent.bazookaCooldownUntil - hudNow) / 1000));
 
   useEffect(() => {
     const timers = timersRef.current;
@@ -90,6 +116,12 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
   const isLoser = isGameOver && result?.loser === self?.slot;
   const isDraw = isGameOver && (result?.reason === "DRAW" || result?.winner === null);
 
+  const rematchWaiting = rematchStartId === game.startId;
+  const selfRoomPlayer = room?.players.find((p) => p.connectionId === connectionId);
+  const oppRoomPlayer = room?.players.find((p) => p.connectionId !== connectionId);
+  const selfRematchReady = Boolean(selfRoomPlayer?.ready || rematchWaiting);
+  const oppRematchReady = Boolean(oppRoomPlayer?.ready);
+
   const handleRematch = () => {
     setRematchStartId(game.startId);
     socket.emit("room:rematch", { roomId: game.roomId }, (res?: { ok: boolean; error?: { message?: string } }) => {
@@ -98,6 +130,31 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
       }
     });
   };
+
+  useEffect(() => {
+    if (isGameOver || countdown === null) return;
+
+    if (countdown === 3) {
+      sound.playCountdown(false);
+      const t = setTimeout(() => setCountdown(2), 1000);
+      return () => clearTimeout(t);
+    }
+    if (countdown === 2) {
+      sound.playCountdown(false);
+      const t = setTimeout(() => setCountdown(1), 1000);
+      return () => clearTimeout(t);
+    }
+    if (countdown === 1) {
+      sound.playCountdown(false);
+      const t = setTimeout(() => setCountdown("FIGHT"), 1000);
+      return () => clearTimeout(t);
+    }
+    if (countdown === "FIGHT") {
+      sound.playCountdown(true);
+      const t = setTimeout(() => setCountdown(null), 800);
+      return () => clearTimeout(t);
+    }
+  }, [countdown, isGameOver]);
 
   useEffect(() => {
     if (isGameOver && !gameOverSoundPlayed.current) {
@@ -297,7 +354,10 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
     });
 
     // Bazooka fired (rockets straight to target area/obstacle)
-    if (prevSelf.bazookaBoost === 10 && self.bazookaBoost === 0) {
+    const selfFiredBazooka =
+      self.bazookaCooldownUntil > (prevSelf.bazookaCooldownUntil ?? 0) ||
+      (prevSelf.bazookaBoost === 10 && self.bazookaBoost === 0);
+    if (selfFiredBazooka) {
       sound.playBazooka();
       newLogs.push({ id: Math.random().toString(), time: timeStr, text: t("bazookaSelf"), type: "action" });
       const hitCell = opponent.grid.find((c, i) => {
@@ -310,7 +370,10 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
         targetCellId: hitCell ? hitCell.id : 5,
       });
     }
-    if (prevOpp.bazookaBoost === 10 && opponent.bazookaBoost === 0) {
+    const oppFiredBazooka =
+      opponent.bazookaCooldownUntil > (prevOpp.bazookaCooldownUntil ?? 0) ||
+      (prevOpp.bazookaBoost === 10 && opponent.bazookaBoost === 0);
+    if (oppFiredBazooka) {
       sound.playBazooka();
       newLogs.push({ id: Math.random().toString(), time: timeStr, text: t("bazookaOpp"), type: "damage" });
       const hitCell = self.grid.find((c, i) => {
@@ -450,14 +513,11 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
                 BIRD {oppBirdReady ? t("readyCaps") : `${oppRemainingSec}s`}
               </span>
             </div>
-            <div className={styles.hudBoostRow}>
-              <span className={styles.hudBoostText}>BOOST {opponent.bazookaBoost}/10</span>
-              <progress
-                className={styles.hudBoostBar}
-                value={opponent.bazookaBoost}
-                max={10}
-                aria-label={t("bazookaBoostAria", { boost: opponent.bazookaBoost })}
-              />
+            <div className={styles.hudBazookaRow}>
+              <span className={styles.hudBazookaIcon} aria-hidden="true">🚀</span>
+              <span className={`${styles.hudBazookaText} ${oppBazookaReady ? styles.hudBazookaReady : styles.hudBazookaCooldown}`}>
+                BAZOOKA {oppBazookaReady ? t("readyCaps") : `${oppBazookaRemainingSec}s`}
+              </span>
             </div>
           </div>
 
@@ -482,14 +542,11 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
               </span>
               <span className={styles.hudBirdIcon} aria-hidden="true">🦅</span>
             </div>
-            <div className={styles.hudBoostRow}>
-              <span className={styles.hudBoostText}>BOOST {self.bazookaBoost}/10</span>
-              <progress
-                className={styles.hudBoostBar}
-                value={self.bazookaBoost}
-                max={10}
-                aria-label={t("bazookaBoostAria", { boost: self.bazookaBoost })}
-              />
+            <div className={styles.hudBazookaRow}>
+              <span className={`${styles.hudBazookaText} ${selfBazookaReady ? styles.hudBazookaReady : styles.hudBazookaCooldown}`}>
+                BAZOOKA {selfBazookaReady ? t("readyCaps") : `${selfBazookaRemainingSec}s`}
+              </span>
+              <span className={styles.hudBazookaIcon} aria-hidden="true">🚀</span>
             </div>
           </div>
         </header>
@@ -509,7 +566,7 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
             {/* Opponent Castle Tower */}
             <CastleTower
               castle={opponent.castle}
-              boost={opponent.bazookaBoost}
+              bazookaCooldownUntil={opponent.bazookaCooldownUntil}
               birdCooldownUntil={opponent.birdCooldownUntil}
               opponent={true}
             />
@@ -537,7 +594,7 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
             {/* Your Castle Tower */}
             <CastleTower
               castle={self.castle}
-              boost={self.bazookaBoost}
+              bazookaCooldownUntil={self.bazookaCooldownUntil}
               birdCooldownUntil={self.birdCooldownUntil}
               opponent={false}
             />
@@ -557,12 +614,28 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
             key={game.startId}
             roomId={game.roomId}
             startId={game.startId}
-            enabled={!isGameOver}
+            enabled={!isGameOver && countdown === null}
             battlefield={battlefield}
             opponentBirds={opponent.birds}
             onBirdLockChange={setActiveBirdLock}
           />
         </div>
+
+        {/* 3-2-1 Countdown Overlay */}
+        {countdown !== null && !isGameOver && (
+          <div className={styles.countdownOverlay} aria-live="assertive">
+            <div className={styles.countdownBox} key={String(countdown)}>
+              <span className={countdown === "FIGHT" ? styles.countdownFight : styles.countdownNumber}>
+                {countdown === "FIGHT" ? (isEn ? "FIGHT!" : "BẮT ĐẦU!") : countdown}
+              </span>
+              <span className={styles.countdownSub}>
+                {countdown === "FIGHT"
+                  ? (isEn ? "TYPING DUEL BEGINS!" : "CHIẾN ĐẤU!")
+                  : (isEn ? "GET READY..." : "CHUẨN BỊ...")}
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Game Over Modal Overlay */}
         {isGameOver && (
@@ -652,14 +725,61 @@ export function Battlefield({ game, connectionId, busy, onLeave }: {
                 </div>
               )}
 
+              {/* Rematch Player Readiness Slots (like Lobby RoomView) */}
+              <div className={styles.rematchSlotsSection}>
+                <div className={styles.rematchSlotsTitle}>
+                  {isEn ? "Rematch Readiness:" : "Trạng thái sẵn sàng tái đấu:"}
+                </div>
+                <div className={styles.rematchSlots}>
+                  {(["PLAYER_1", "PLAYER_2"] as const).map((slot, index) => {
+                    const roomPlayer = room?.players.find((p) => p.slot === slot);
+                    const isSelf = roomPlayer?.connectionId === connectionId;
+                    const isReady = roomPlayer?.ready ?? (isSelf ? rematchWaiting : false);
+                    return (
+                      <div
+                        key={slot}
+                        className={`${styles.rematchSlot} ${isReady ? styles.rematchSlotReady : ""}`}
+                      >
+                        <div className={styles.rematchSlotHeader}>
+                          <span className={styles.rematchSlotRole}>
+                            {t("player")} {index + 1} ({index === 0 ? t("host") : t("guest")})
+                          </span>
+                          {isSelf && <span className={styles.rematchYouBadge}>{t("you")}</span>}
+                        </div>
+                        <div className={styles.rematchSlotStatus}>
+                          {isReady ? (
+                            <span className={styles.readyText}>
+                              ✓ {isEn ? "Ready for Rematch" : "Đã yêu cầu tái đấu"}
+                            </span>
+                          ) : (
+                            <span className={styles.waitingText}>
+                              ⏳ {isEn ? "Waiting..." : "Đang chờ..."}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                {oppRematchReady && !selfRematchReady && (
+                  <p className={styles.rematchNoticePulse}>
+                    ⚡ {t("rematchOpponentReady")}
+                  </p>
+                )}
+              </div>
+
               <div className={styles.gameOverActions}>
                 <button
                   type="button"
-                  className={styles.rematchBtn}
-                  disabled={rematchWaiting}
+                  className={`${styles.rematchBtn} ${oppRematchReady && !selfRematchReady ? styles.rematchBtnPulse : ""}`}
+                  disabled={selfRematchReady}
                   onClick={handleRematch}
                 >
-                  {rematchWaiting ? t("rematchWaiting") : t("rematch")}
+                  {selfRematchReady
+                    ? (isEn ? "⏳ Waiting for opponent..." : "⏳ Đang chờ đối thủ đồng ý...")
+                    : oppRematchReady
+                    ? (isEn ? "⚡ Accept Rematch!" : "⚡ Chấp nhận tái đấu!")
+                    : (isEn ? "🔄 Rematch" : "🔄 Tái đấu")}
                 </button>
                 <button
                   type="button"

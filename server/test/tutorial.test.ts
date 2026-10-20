@@ -33,19 +33,17 @@ describe("Tutorial System - Unit Tests", () => {
     expect(requiredCommands.some((c: string) => c === "add water 9")).toBe(true);
     // 5. add clay 9
     expect(requiredCommands.some((c: string) => c === "add clay 9")).toBe(true);
-    // 6. add brick 9
-    expect(requiredCommands.some((c: string) => c === "add brick 9")).toBe(true);
-    // 7. boost
-    expect(requiredCommands.some((c: string) => c === "boost")).toBe(true);
-    // 8. bazooka c
+    // 6. use brick 9
+    expect(requiredCommands.some((c: string) => c === "use brick 9")).toBe(true);
+    // 7. bazooka c
     expect(requiredCommands.some((c: string) => c === "bazooka c")).toBe(true);
-    // 9. bird and bomb
+    // 8. bird and bomb
     expect(requiredCommands.some((c: string) => c === "bird and bomb")).toBe(true);
-    // 10. air defense
+    // 9. air defense
     const birdStep = TUTORIAL_STEPS.find((s: TutorialStepDef) => s.isBirdDefense);
     expect(birdStep).toBeDefined();
     expect(birdStep?.id).toBe(14);
-    // 11. finish load ammo 5
+    // 10. finish load ammo 5
     const finalStep = TUTORIAL_STEPS[14];
     expect(finalStep?.requiredCommand).toBe("load ammo 5");
   });
@@ -77,15 +75,19 @@ describe("Tutorial System - Unit Tests", () => {
     expect(validateTutorialInput(0, "pistol 5").ok).toBe(true);
 
     // Rejects other commands:
-    expect(validateTutorialInput(0, "boost").ok).toBe(false);
+    expect(validateTutorialInput(0, "bazooka c").ok).toBe(false);
     expect(validateTutorialInput(0, "add clay 5").ok).toBe(false);
     expect(validateTutorialInput(0, "protector 1").ok).toBe(false);
     expect(validateTutorialInput(0, "pistol 4").ok).toBe(false); // Wrong cell!
 
-    // At Step 9 (Step 10: boost):
-    expect(validateTutorialInput(9, "b").ok).toBe(true);
-    expect(validateTutorialInput(9, "boost").ok).toBe(true);
-    expect(validateTutorialInput(9, "pistol 1").ok).toBe(false);
+    // At Step 9 (Step 10: Bot action):
+    expect(validateTutorialInput(9, "anything").ok).toBe(true);
+
+    // At Step 10 (Step 11: bazooka c):
+    expect(validateTutorialInput(10, "b").ok).toBe(true);
+    expect(validateTutorialInput(10, "bazooka").ok).toBe(true);
+    expect(validateTutorialInput(10, "bazooka c").ok).toBe(true);
+    expect(validateTutorialInput(10, "bazooka a").ok).toBe(false); // Wrong area!
   });
 
   it("TC-TUT-05: Air defense uses 12-character challenge word conforming to BIRD_WORD_LENGTH", () => {
