@@ -6,7 +6,7 @@
 
 **Type fast. Fight smart. Defeat your opponent.**
 
-[🇬🇧 English](#-english) · [🇻🇳 Tiếng Việt](#-tiếng-việt)
+[🎮 Play](https://typelore-five.vercel.app/) · [🇬🇧 English](#-english) · [🇻🇳 Tiếng Việt](#-tiếng-việt)
 
 </div>
 
@@ -54,7 +54,7 @@ More gameplay mechanics, visuals, effects, and features will be added as the pro
 
 **⚔️ TypeLore — Your keyboard is your weapon.**
 
-[🇻🇳 Đọc bằng Tiếng Việt](#-tiếng-việt)
+[🎮 Play TypeLore](https://typelore-five.vercel.app/) · [🇻🇳 Đọc bằng Tiếng Việt](#-tiếng-việt)
 
 </div>
 
@@ -102,6 +102,6 @@ Các cơ chế gameplay, giao diện, hiệu ứng và tính năng mới sẽ ti
 
 **⚔️ TypeLore — Bàn phím chính là vũ khí của bạn.**
 
-[🇬🇧 Read in English](#-english)
+[🎮 Chơi TypeLore](https://typelore-five.vercel.app/) · [🇬🇧 Read in English](#-english)
 
 </div>
