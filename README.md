@@ -1,107 +1,107 @@
-# Typelore
+<div align="center">
 
-Typelore is a desktop web prototype for a 1v1 realtime typing PvP game. The
-repository contains the M01 foundation and M02 lobby: a React client, a Node and
-Express Socket.IO server, and a shared TypeScript protocol and room package.
+# ⚔️ TypeLore
 
-## Requirements
+### A real-time 1v1 typing battle game
 
-- Windows with PowerShell
-- Node.js 22.12 or newer (verified with 22.14.0)
-- npm 10 or newer (verified with 10.9.2)
+**Type fast. Fight smart. Defeat your opponent.**
 
-PowerShell may resolve `npm` to a blocked `npm.ps1` script. Use `npm.cmd` for
-the commands below.
+[🇬🇧 English](#-english) · [🇻🇳 Tiếng Việt](#-tiếng-việt)
 
-## Workspace layout
+</div>
 
-```text
-client/  React, Vite, TypeScript, CSS Modules, Socket.IO client
-server/  Node.js, Express, TypeScript, Socket.IO server
-shared/  Protocol schemas and typed Socket.IO contracts
-```
+---
 
-## Install and run
+# 🇬🇧 English
 
-```powershell
-npm.cmd install
-npm.cmd run dev
-```
+## 📖 About
 
-The development launcher starts with port `3001` for the server and `5173` for
-the client. If either port is busy, it automatically selects the next available
-port and prints the final Local and Network URLs in the terminal. Open the
-printed Local URL on the development machine or the printed Network URL from
-another device on the same network.
+**TypeLore** is a real-time **1v1 typing PvP game** where your keyboard becomes your weapon.
 
-Vite proxies `/socket.io` to the local server, so LAN clients use the same
-origin as the page and do not require permissive Socket.IO CORS. To find a
-Windows LAN address, run:
+Face another player, type words to interact with the battlefield, attack your opponent, and protect your castle.
 
-```powershell
-Get-NetIPAddress -AddressFamily IPv4 |
-  Where-Object { $_.IPAddress -notlike '127.*' } |
-  Select-Object IPAddress, InterfaceAlias
-```
+## 🎮 How to Play
 
-Windows Firewall may ask for permission the first time Node listens on the
-network. Only allow the network profiles you trust.
+1. Create a room or join one with a room code.
+2. Wait for both players to be ready.
+3. Type the displayed words to interact with objects on your battlefield.
+4. Use weapons, resources, and defenses to fight your opponent.
+5. Protect your castle and destroy your opponent's castle to win.
 
-Do not assume the ports stayed at `3001` and `5173`; use the URLs printed by
-`npm.cmd run dev`.
+## ✨ Features
 
-## Environment variables
+- ⚔️ Real-time 1v1 battles
+- ⌨️ Typing-based combat
+- 🌐 Multiplayer rooms
+- 🏰 Castle attack & defense
+- 🎯 Interactive battlefield objects
 
-| Variable | Package | Default | Purpose |
-|---|---|---|---|
-| `PORT` | server | `3001` | HTTP and Socket.IO port. Use `0` in tests for an ephemeral port. |
-| `CLIENT_ORIGIN` | server | `http://localhost:5173` | Allowed local browser origin. |
-| `VITE_SERVER_URL` | client | Same origin via Vite proxy | Optional direct Socket.IO server URL override. |
+## 🛠️ Tech Stack
 
-`PORT` and `DEV_CLIENT_PORT` are set automatically by the root development
-launcher. They can still be supplied when running an individual workspace for
-diagnostics, but normal development should start from the repository root.
+**Frontend:** React · TypeScript · Vite · CSS Modules
 
-Copy a shareable environment template rather than committing `.env` files.
+**Backend:** Node.js · Express · Socket.IO
 
-## Quality checks
+## 🚧 Project Status
 
-```powershell
-npm.cmd run lint
-npm.cmd run typecheck
-npm.cmd run test
-npm.cmd run build
-npm.cmd run check
-```
+**TypeLore is currently under development.**
 
-## Try the M02 lobby
+More gameplay mechanics, visuals, effects, and features will be added as the project evolves.
 
-1. Open the printed client URL in two tabs, browsers, or devices on the same LAN.
-2. In the first tab, choose **Tạo phòng mới**. Share its six-character code.
-3. In the second tab, enter the code and choose **Vào phòng**. Both tabs show
-   Host and Guest slots. Lowercase input and surrounding whitespace are normalized.
-4. Both players choose **Sẵn sàng**. The server synchronizes Ready and announces
-   that the match is ready. Battlefield and gameplay begin in M03 and later.
-5. Choose **Rời phòng** or close a tab. The survivor returns to waiting, with
-   Ready cleared. If the Host leaves, the Guest becomes Host. The room disappears
-   after its last player leaves. A third player receives a room-full error.
+---
 
-Codes use `23456789ABCDEFGHJKLMNPQRSTUVWXYZ` (six characters, no hyphens).
-Invalid, nonexistent and full-room errors appear inline. Ready requires two
-players. It can be cancelled before both are ready. After the start announcement,
-leaving or disconnecting cancels that lobby start; a replacement may join and both
-players can Ready again. No game loop is running yet.
+<div align="center">
 
-Rooms are in memory and tied to the current socket connection. Reconnecting
-does not reclaim membership; create or join again. Server restart removes all
-rooms. Network loss is detected after Socket.IO's transport timeout, not always
-immediately. An unconfirmed request times out after five seconds and reconnects
-instead of automatically repeating a mutation.
+**⚔️ TypeLore — Your keyboard is your weapon.**
 
-**Sao chép** uses the browser Clipboard API. On LAN HTTP or denied clipboard
-permission, select the displayed room code and copy it manually.
+[🇻🇳 Đọc bằng Tiếng Việt](#-tiếng-việt)
 
-The development server is single-process and has no account authentication,
-persistent storage or production abuse controls. Room codes are invitations,
-not security credentials. Tests cover strict validation, collision handling,
-concurrent last-slot joining, Ready/start, leave/disconnect and M01 regression.
+</div>
+
+---
+
+# 🇻🇳 Tiếng Việt
+
+## 📖 Giới thiệu
+
+**TypeLore** là game **đối kháng gõ phím 1v1 theo thời gian thực**, nơi bàn phím trở thành vũ khí của bạn.
+
+Đối đầu với một người chơi khác, gõ từ để tương tác với chiến trường, tấn công đối thủ và bảo vệ lâu đài của mình.
+
+## 🎮 Cách chơi
+
+1. Tạo phòng hoặc tham gia bằng mã phòng.
+2. Chờ cả hai người chơi sẵn sàng.
+3. Gõ các từ xuất hiện để tương tác với vật thể trên chiến trường.
+4. Sử dụng vũ khí, tài nguyên và vật phòng thủ để chiến đấu.
+5. Bảo vệ lâu đài của bạn và phá hủy lâu đài đối thủ để chiến thắng.
+
+## ✨ Tính năng
+
+- ⚔️ Đối kháng 1v1 thời gian thực
+- ⌨️ Chiến đấu bằng kỹ năng gõ phím
+- 🌐 Phòng chơi Multiplayer
+- 🏰 Tấn công & bảo vệ lâu đài
+- 🎯 Các vật thể tương tác trên chiến trường
+
+## 🛠️ Công nghệ
+
+**Frontend:** React · TypeScript · Vite · CSS Modules
+
+**Backend:** Node.js · Express · Socket.IO
+
+## 🚧 Trạng thái dự án
+
+**TypeLore hiện đang trong quá trình phát triển.**
+
+Các cơ chế gameplay, giao diện, hiệu ứng và tính năng mới sẽ tiếp tục được bổ sung trong quá trình phát triển.
+
+---
+
+<div align="center">
+
+**⚔️ TypeLore — Bàn phím chính là vũ khí của bạn.**
+
+[🇬🇧 Read in English](#-english)
+
+</div>
