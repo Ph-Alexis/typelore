@@ -167,6 +167,7 @@ export function CombatAnimationLayer({
             key={bird.id}
             className={`${styles.straightBird} ${styles.birdFlyLeft}`}
             style={{ left: `${curX}px`, top: `${skyY}px` }}
+            data-tutorial-target="self-bird-flying"
           >
             <div className={styles.birdAvatar}>
               <span className={styles.birdWing}>🪶</span>
@@ -202,6 +203,7 @@ export function CombatAnimationLayer({
             key={bird.id}
             className={`${styles.straightBird} ${styles.birdFlyRight}`}
             style={{ left: `${curX}px`, top: `${skyY}px` }}
+            data-tutorial-target="bird-flying"
           >
             <div className={styles.birdAvatar}>
               <span className={styles.birdBomb}>💣</span>

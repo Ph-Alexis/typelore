@@ -71,11 +71,124 @@ interface RocketAnim {
   targetCellId?: number;
 }
 
+interface StepTargetInfo {
+  selector: string;
+  placement: "left" | "right" | "top" | "bottom";
+  highlightPlayerCellId?: number;
+  highlightBotCellId?: number;
+  highlightBotAreaId?: "A" | "B" | "C" | "D";
+  highlightPlayerTower?: boolean;
+  highlightBotTower?: boolean;
+  highlightPlayerBirdStation?: boolean;
+  highlightCorridor?: boolean;
+}
+
+function getStepTargetInfo(stepIndex: number): StepTargetInfo {
+  switch (stepIndex) {
+    case 0: // Step 1: pistol 5
+      return {
+        selector: '[data-tutorial-cell="player-5"]',
+        placement: "left",
+        highlightPlayerCellId: 5,
+      };
+    case 1: // Step 2: load ammo 5
+      return {
+        selector: '[data-tutorial-cell="player-5"]',
+        placement: "left",
+        highlightPlayerCellId: 5,
+      };
+    case 2: // Step 3: protector 1
+      return {
+        selector: '[data-tutorial-cell="player-1"]',
+        placement: "left",
+        highlightPlayerCellId: 1,
+      };
+    case 3: // Step 4: Bot shot 1 on Protector 1
+      return {
+        selector: '[data-tutorial-cell="player-1"]',
+        placement: "left",
+        highlightPlayerCellId: 1,
+      };
+    case 4: // Step 5: Bot shot 2 on Protector 1
+      return {
+        selector: '[data-tutorial-cell="player-1"]',
+        placement: "left",
+        highlightPlayerCellId: 1,
+      };
+    case 5: // Step 6: Bot barrage (shatters shield & damages player castle)
+      return {
+        selector: '[data-tower="self"]',
+        placement: "left",
+        highlightPlayerTower: true,
+      };
+    case 6: // Step 7: add water 9
+      return {
+        selector: '[data-tutorial-cell="player-9"]',
+        placement: "left",
+        highlightPlayerCellId: 9,
+      };
+    case 7: // Step 8: add clay 9
+      return {
+        selector: '[data-tutorial-cell="player-9"]',
+        placement: "left",
+        highlightPlayerCellId: 9,
+      };
+    case 8: // Step 9: use brick 9
+      return {
+        selector: '[data-tutorial-cell="player-9"]',
+        placement: "left",
+        highlightPlayerCellId: 9,
+      };
+    case 9: // Step 10: Bazooka ready & Bot deploys Area C
+      return {
+        selector: '[data-tutorial-cell="bot-1"], [data-tutorial-cell="bot-2"], [data-tutorial-cell="bot-4"], [data-tutorial-cell="bot-5"]',
+        placement: "right",
+        highlightBotAreaId: "C",
+      };
+    case 10: // Step 11: bazooka c
+      return {
+        selector: '[data-tutorial-cell="bot-1"], [data-tutorial-cell="bot-2"], [data-tutorial-cell="bot-4"], [data-tutorial-cell="bot-5"]',
+        placement: "right",
+        highlightBotAreaId: "C",
+      };
+    case 11: // Step 12: bird and bomb
+      return {
+        selector: '[data-tower="self"]',
+        placement: "left",
+        highlightPlayerTower: true,
+        highlightPlayerBirdStation: true,
+      };
+    case 12: // Step 13: Bot bird counter-attacks
+      return {
+        selector: '[data-tutorial-target="corridor"]',
+        placement: "bottom",
+        highlightCorridor: true,
+      };
+    case 13: // Step 14: Air defense - type letters
+      return {
+        selector: '[data-tutorial-target="bird-flying"]',
+        placement: "bottom",
+      };
+    case 14: // Step 15: Finish enemy - load ammo 5
+      return {
+        selector: '[data-tower="opponent"]',
+        placement: "right",
+        highlightBotTower: true,
+      };
+    default:
+      return {
+        selector: '[data-tutorial-cell="player-5"]',
+        placement: "left",
+      };
+  }
+}
+
 export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
   const { language, t } = useLanguage();
   const isEn = language === "en";
 
   const [stepIndex, setStepIndex] = useState(0);
+  const [isExplaining, setIsExplaining] = useState(true);
   const [draft, setDraft] = useState("");
   const [feedback, setFeedback] = useState("");
   const [hasError, setHasError] = useState(false);
@@ -114,7 +227,9 @@ export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
   const [botBirdCooldown] = useState(0);
   const [botBirds, setBotBirds] = useState<BirdState[]>([]);
 
+  const tooltipRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const arenaContainerRef = useRef<HTMLDivElement>(null);
   const isBotRunningRef = useRef(false);
   const currentStep: TutorialStepDef = TUTORIAL_STEPS[stepIndex] ?? TUTORIAL_STEPS[0]!;
 
@@ -123,12 +238,16 @@ export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
     setDraft("");
     setFeedback("");
     setHasError(false);
+    const nextStep = TUTORIAL_STEPS[newIndex];
+    setIsExplaining(!nextStep?.isBotAction);
     setStepIndex(newIndex);
   }, []);
 
   useEffect(() => {
-    inputRef.current?.focus();
-  }, [stepIndex]);
+    if (!isExplaining) {
+      inputRef.current?.focus();
+    }
+  }, [stepIndex, isExplaining]);
 
   const handleToggleMute = () => {
     setMuted(sound.toggleMute());
@@ -341,15 +460,215 @@ export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
     }
   }, [addCombatText, goToStep]);
 
+  const targetInfo = getStepTargetInfo(stepIndex);
+
+  const handleDismissExplanation = useCallback(() => {
+    sound.playCountdown(false);
+    setIsExplaining(false);
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 60);
+  }, []);
+
+  // For bot actions, execute automatically without showing explanation modals
   useEffect(() => {
-    if (!currentStep.isBotAction) return;
-
-    const timer = setTimeout(() => {
-      runBotStep(stepIndex);
-    }, 1200);
-
-    return () => clearTimeout(timer);
+    if (currentStep.isBotAction) {
+      const timer = setTimeout(() => {
+        runBotStep(stepIndex);
+      }, 600);
+      return () => clearTimeout(timer);
+    }
   }, [stepIndex, currentStep.isBotAction, runBotStep]);
+
+  useEffect(() => {
+    if (!isExplaining || currentStep.isBotAction) return;
+
+    const handleWindowKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        e.stopPropagation();
+        handleDismissExplanation();
+      }
+    };
+
+    window.addEventListener("keydown", handleWindowKeyDown, true);
+    return () => window.removeEventListener("keydown", handleWindowKeyDown, true);
+  }, [isExplaining, currentStep.isBotAction, handleDismissExplanation]);
+
+  const handleReviewGuide = useCallback(() => {
+    if (!currentStep.isBotAction) {
+      setIsExplaining(true);
+    }
+  }, [currentStep.isBotAction]);
+
+  const [tooltipPos, setTooltipPos] = useState<{
+    top: number;
+    left: number;
+    placement: "left" | "right" | "top" | "bottom";
+    arrowTop?: number | undefined;
+    arrowLeft?: number | undefined;
+  }>({ top: 40, left: 200, placement: "left" });
+  const [spotlightRect, setSpotlightRect] = useState<{
+    top: number;
+    left: number;
+    width: number;
+    height: number;
+    borderRadius?: number;
+  } | null>(null);
+
+  const updateTooltipPosition = useCallback(() => {
+    if (!arenaContainerRef.current) return;
+    const arenaRect = arenaContainerRef.current.getBoundingClientRect();
+    const info = getStepTargetInfo(stepIndex);
+
+    let targetRect: { top: number; left: number; right: number; bottom: number; width: number; height: number } | null = null;
+    const targetEls = info.selector ? arenaContainerRef.current.querySelectorAll(info.selector) : null;
+    if (targetEls && targetEls.length > 0) {
+      let minLeft = Infinity;
+      let minTop = Infinity;
+      let maxRight = -Infinity;
+      let maxBottom = -Infinity;
+
+      targetEls.forEach((el) => {
+        const r = el.getBoundingClientRect();
+        if (r.width === 0 && r.height === 0) return;
+        if (r.left < minLeft) minLeft = r.left;
+        if (r.top < minTop) minTop = r.top;
+        if (r.right > maxRight) maxRight = r.right;
+        if (r.bottom > maxBottom) maxBottom = r.bottom;
+      });
+
+      if (minLeft < Infinity && maxRight > -Infinity) {
+        targetRect = {
+          left: minLeft,
+          top: minTop,
+          right: maxRight,
+          bottom: maxBottom,
+          width: maxRight - minLeft,
+          height: maxBottom - minTop,
+        };
+      }
+    }
+
+    const tooltipEl = tooltipRef.current;
+    const tooltipWidth = tooltipEl?.offsetWidth || 340;
+    const tooltipHeight = tooltipEl?.offsetHeight || 210;
+    const gap = 14;
+
+    if (!targetRect) {
+      setSpotlightRect(null);
+      setTooltipPos({
+        top: Math.max(10, Math.round(arenaRect.height / 2 - tooltipHeight / 2)),
+        left: Math.max(10, Math.round(arenaRect.width / 2 - tooltipWidth / 2)),
+        placement: info.placement,
+      });
+      return;
+    }
+
+    const scrollLeft = arenaContainerRef.current.scrollLeft || 0;
+    const scrollTop = arenaContainerRef.current.scrollTop || 0;
+    const clientLeft = arenaContainerRef.current.clientLeft || 0;
+    const clientTop = arenaContainerRef.current.clientTop || 0;
+    const pad = 6;
+    setSpotlightRect({
+      top: Math.round(targetRect.top - arenaRect.top - clientTop + scrollTop - pad),
+      left: Math.round(targetRect.left - arenaRect.left - clientLeft + scrollLeft - pad),
+      width: Math.round(targetRect.width + pad * 2),
+      height: Math.round(targetRect.height + pad * 2),
+      borderRadius: info.highlightPlayerCellId || info.highlightBotAreaId ? 10 : 12,
+    });
+
+    const relLeft = targetRect.left - arenaRect.left - clientLeft + scrollLeft;
+    const relTop = targetRect.top - arenaRect.top - clientTop + scrollTop;
+    const relRight = relLeft + targetRect.width;
+    const relBottom = relTop + targetRect.height;
+    const targetCenterX = relLeft + targetRect.width / 2;
+    const targetCenterY = relTop + targetRect.height / 2;
+
+    let top: number;
+    let left: number;
+    let placement = info.placement;
+
+    if (placement === "left") {
+      left = relLeft - tooltipWidth - gap;
+      top = targetCenterY - tooltipHeight / 2;
+
+      if (left < 10) {
+        if (relRight + tooltipWidth + gap < arenaRect.width - 10) {
+          placement = "right";
+          left = relRight + gap;
+        } else {
+          left = 10;
+        }
+      }
+    } else if (placement === "right") {
+      left = relRight + gap;
+      top = targetCenterY - tooltipHeight / 2;
+
+      if (left + tooltipWidth > arenaRect.width - 10) {
+        if (relLeft - tooltipWidth - gap > 10) {
+          placement = "left";
+          left = relLeft - tooltipWidth - gap;
+        } else {
+          left = Math.max(10, arenaRect.width - tooltipWidth - 10);
+        }
+      }
+    } else if (placement === "top") {
+      left = targetCenterX - tooltipWidth / 2;
+      top = relTop - tooltipHeight - gap;
+      if (top < 10) {
+        placement = "bottom";
+        top = relBottom + gap;
+      }
+    } else {
+      // bottom
+      left = targetCenterX - tooltipWidth / 2;
+      top = relBottom + gap;
+      if (top + tooltipHeight > arenaRect.height - 10) {
+        placement = "top";
+        top = relTop - tooltipHeight - gap;
+      }
+    }
+
+    // STRICT clamping inside arenaContainer bounds so button and content are NEVER cut off
+    const maxTop = Math.max(10, arenaRect.height - tooltipHeight - 12);
+    top = Math.max(10, Math.min(maxTop, top));
+    const maxLeft = Math.max(10, arenaRect.width - tooltipWidth - 10);
+    left = Math.max(10, Math.min(maxLeft, left));
+
+    let arrowTop: number | undefined;
+    let arrowLeft: number | undefined;
+
+    if (placement === "left" || placement === "right") {
+      arrowTop = Math.round(Math.max(18, Math.min(tooltipHeight - 22, targetCenterY - top)));
+    } else {
+      arrowLeft = Math.round(Math.max(20, Math.min(tooltipWidth - 20, targetCenterX - left)));
+    }
+
+    setTooltipPos({
+      top: Math.round(top),
+      left: Math.round(left),
+      placement,
+      arrowTop,
+      arrowLeft,
+    });
+  }, [stepIndex]);
+
+  useEffect(() => {
+    updateTooltipPosition();
+    const raf = requestAnimationFrame(updateTooltipPosition);
+    const timeout = setTimeout(updateTooltipPosition, 80);
+    const timeout2 = setTimeout(updateTooltipPosition, 200);
+    const interval = setInterval(updateTooltipPosition, 1000);
+    window.addEventListener("resize", updateTooltipPosition);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(timeout);
+      clearTimeout(timeout2);
+      clearInterval(interval);
+      window.removeEventListener("resize", updateTooltipPosition);
+    };
+  }, [updateTooltipPosition, isExplaining, botBirds.length]);
 
   const triggerBotActionNow = () => {
     if (currentStep.isBotAction && !isBotRunningRef.current) {
@@ -680,6 +999,11 @@ export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!draft && (e.key === "h" || e.key === "H") && !currentStep.isBotAction) {
+      e.preventDefault();
+      setIsExplaining(true);
+      return;
+    }
     if (e.key === "Enter") {
       e.preventDefault();
       if (currentStep.isBotAction) {
@@ -746,6 +1070,16 @@ export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
           </span>
           <div className={styles.bannerActions}>
             <LanguageToggle />
+            {!isExplaining && !currentStep.isBotAction && (
+              <button
+                type="button"
+                className={styles.reviewGuideBtn}
+                onClick={handleReviewGuide}
+                title={isEn ? "Review Explanation (H)" : "Xem lại giải thích (H)"}
+              >
+                💡 {isEn ? "Review Guide" : "Xem lại giải thích"}
+              </button>
+            )}
             <button
               type="button"
               className={styles.muteBtn}
@@ -853,7 +1187,88 @@ export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
           </header>
 
           {/* 5-Column Arena Container */}
-          <div className={bStyles.arenaContainer}>
+          <div ref={arenaContainerRef} className={bStyles.arenaContainer}>
+            {/* Spotlight Cutout Frame around highlighted element (NO dimming, NO blur on the target) */}
+            {isExplaining && !currentStep.isBotAction && spotlightRect && (
+              <div
+                className={styles.spotlightCutout}
+                style={{
+                  top: spotlightRect.top,
+                  left: spotlightRect.left,
+                  width: spotlightRect.width,
+                  height: spotlightRect.height,
+                  borderRadius: `${spotlightRect.borderRadius ?? 10}px`,
+                }}
+                aria-hidden="true"
+              />
+            )}
+
+            {/* Explanation Tooltip Callout Popup */}
+            {isExplaining && !currentStep.isBotAction && (
+              <div
+                ref={tooltipRef}
+                className={`${styles.tutorialTooltip} ${styles[`tooltip_${tooltipPos.placement}`]}`}
+                style={{ top: tooltipPos.top, left: tooltipPos.left }}
+                role="dialog"
+                aria-modal="false"
+                aria-label={isEn ? currentStep.titleEn : currentStep.titleVi}
+              >
+                <div
+                  className={styles.tooltipArrow}
+                  style={
+                    tooltipPos.placement === "left" || tooltipPos.placement === "right"
+                      ? tooltipPos.arrowTop != null
+                        ? { top: `${tooltipPos.arrowTop}px` }
+                        : undefined
+                      : tooltipPos.arrowLeft != null
+                      ? { left: `${tooltipPos.arrowLeft}px` }
+                      : undefined
+                  }
+                />
+
+                <div className={styles.tooltipHeader}>
+                  <span className={styles.tooltipStepBadge}>
+                    {isEn ? `STEP ${currentStep.id}/15` : `BƯỚC ${currentStep.id}/15`}
+                  </span>
+                  <h3 className={styles.tooltipTitle}>
+                    {isEn ? currentStep.titleEn : currentStep.titleVi}
+                  </h3>
+                </div>
+
+                <p className={styles.tooltipDesc}>
+                  {isEn ? currentStep.descEn : currentStep.descVi}
+                </p>
+
+                <div className={styles.tooltipActionBadge}>
+                  <span className={styles.tooltipActionLabel}>
+                    {currentStep.isBotAction
+                      ? (isEn ? "🤖 Expected Action:" : "🤖 Thao tác:")
+                      : currentStep.isBirdDefense
+                      ? (isEn ? "🎯 Task:" : "🎯 Nhiệm vụ:")
+                      : (isEn ? "⌨️ Command to type:" : "⌨️ Lệnh cần gõ:")}
+                  </span>
+                  <span className={styles.tooltipActionValue}>
+                    {currentStep.isBotAction
+                      ? (isEn ? "Bot executes automated action" : "Bot tự động thực hiện thao tác")
+                      : currentStep.isBirdDefense
+                      ? (isEn ? `Type 12 letters: "${BIRD_DEFENSE_WORD}"` : `Gõ 12 chữ cái: "${BIRD_DEFENSE_WORD}"`)
+                      : currentStep.requiredCommand}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  className={styles.tooltipConfirmBtn}
+                  onClick={handleDismissExplanation}
+                  autoFocus
+                >
+                  <kbd className={styles.enterKeyBadge}>Enter ↵</kbd>
+                  <span>{isEn ? "Got it / Proceed" : "Đã hiểu - Tiếp tục"}</span>
+                  <span className={styles.btnArrow}>➔</span>
+                </button>
+              </div>
+            )}
+
             <FloatingCombatText items={combatTexts} />
             <CombatAnimationLayer
               selfBirds={mockPlayer.birds}
@@ -870,6 +1285,7 @@ export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
                 bazookaCooldownUntil={mockBot.bazookaCooldownUntil}
                 birdCooldownUntil={mockBot.birdCooldownUntil}
                 opponent={true}
+                highlighted={Boolean(targetInfo.highlightBotTower)}
               />
 
               {/* Bot Grid (Opponent) */}
@@ -879,7 +1295,8 @@ export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
                   cells={mockBot.grid}
                   opponent={true}
                   label="Bot"
-                  highlightAreaId={currentStep.targetAreaId}
+                  highlightCellId={targetInfo.highlightBotCellId}
+                  highlightAreaId={targetInfo.highlightBotAreaId ?? currentStep.targetAreaId}
                 />
               </div>
 
@@ -889,6 +1306,7 @@ export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
                 opponentBirds={mockBot.birds}
                 selfGrid={mockPlayer.grid}
                 opponentGrid={mockBot.grid}
+                highlighted={Boolean(targetInfo.highlightCorridor)}
               />
 
               {/* Player Grid (Self) */}
@@ -898,7 +1316,7 @@ export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
                   cells={mockPlayer.grid}
                   opponent={false}
                   label="Player"
-                  highlightCellId={currentStep.targetCellId}
+                  highlightCellId={targetInfo.highlightPlayerCellId ?? currentStep.targetCellId}
                 />
               </div>
 
@@ -908,6 +1326,8 @@ export function TutorialBattlefield({ onExit }: { onExit: () => void }) {
                 bazookaCooldownUntil={mockPlayer.bazookaCooldownUntil}
                 birdCooldownUntil={mockPlayer.birdCooldownUntil}
                 opponent={false}
+                highlighted={Boolean(targetInfo.highlightPlayerTower)}
+                highlightBirdStation={Boolean(targetInfo.highlightPlayerBirdStation)}
               />
             </div>
 

@@ -8,12 +8,16 @@ export function CastleTower({
   bazookaCooldownUntil = 0,
   birdCooldownUntil = 0,
   opponent,
+  highlighted,
+  highlightBirdStation,
 }: {
   castle: CastleState;
-  bazookaCooldownUntil?: number;
-  boost?: number;
-  birdCooldownUntil?: number;
+  bazookaCooldownUntil?: number | undefined;
+  boost?: number | undefined;
+  birdCooldownUntil?: number | undefined;
   opponent: boolean;
+  highlighted?: boolean | undefined;
+  highlightBirdStation?: boolean | undefined;
 }) {
   const { t } = useLanguage();
   const [now, setNow] = useState(() => Date.now());
@@ -37,7 +41,7 @@ export function CastleTower({
     <aside
       className={`${styles.castleTower} ${opponent ? styles.towerOpponent : styles.towerSelf} ${
         isBazookaReady ? styles.towerBoostReady : ""
-      }`}
+      } ${highlighted ? styles.towerHighlighted : ""}`}
       data-tower={opponent ? "opponent" : "self"}
       aria-label={opponent ? t("castleWallOpponentAria") : t("castleWallSelfAria")}
     >
@@ -50,7 +54,9 @@ export function CastleTower({
 
       {/* 2. Mounted Bird Aviary Station (Above Bazooka) */}
       <div
-        className={`${styles.towerBirdStation} ${isBirdReady ? styles.birdStationReady : styles.birdStationCooldown}`}
+        className={`${styles.towerBirdStation} ${isBirdReady ? styles.birdStationReady : styles.birdStationCooldown} ${
+          highlightBirdStation ? styles.birdStationHighlighted : ""
+        }`}
         title={`Bird & Bomb: ${isBirdReady ? t("readyCaps") : `${birdRemainingSec}s`}`}
         aria-label={`Bird & Bomb: ${isBirdReady ? t("readyCaps") : `${birdRemainingSec}s`}`}
       >

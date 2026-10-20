@@ -7,11 +7,13 @@ export function CombatCorridor({
   opponentBirds,
   selfGrid,
   opponentGrid,
+  highlighted,
 }: {
   selfBirds: BirdState[];
   opponentBirds: BirdState[];
   selfGrid: GridCellState[];
   opponentGrid: GridCellState[];
+  highlighted?: boolean | undefined;
 }) {
   const { t } = useLanguage();
   const hasSelfPistolArmed = selfGrid.some((c) => c.object?.type === "PISTOL" && c.object.ammo > 0);
@@ -22,7 +24,11 @@ export function CombatCorridor({
   ];
 
   return (
-    <div className={styles.combatCorridor} aria-label={t("corridorAria")}>
+    <div
+      className={`${styles.combatCorridor} ${highlighted ? styles.corridorHighlighted : ""}`}
+      data-tutorial-target="corridor"
+      aria-label={t("corridorAria")}
+    >
       <div className={styles.corridorSky}>
         {allBirds.length > 0 ? (
           allBirds.map((bird) => {
